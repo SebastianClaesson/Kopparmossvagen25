@@ -213,11 +213,12 @@
 
 <div class="panel ui">
   <h3>Variant</h3>
-  <button id="btn-pool" class="active" data-variant="pool">A · Pool i söder (kortsidan)</button>
-  <button id="btn-pool-c" data-variant="poolC">B · Pool längs SV (vid carporten)</button>
-  <button id="btn-spa" data-variant="spa">C · Bubbelpool + bastu</button>
-  <button id="btn-garden" data-variant="garden">D · Bara fin trädgård</button>
-  <button id="btn-pool-e" data-variant="poolE">E · Pool söder, långsida mot hus</button>
+  <button id="btn-pool" class="active" data-variant="pool">A · Pool söder (kortsida)</button>
+  <button id="btn-pool-c" data-variant="poolC">B · Pool längs SV</button>
+  <button id="btn-spa" data-variant="spa">C · Spa + bastu</button>
+  <button id="btn-garden" data-variant="garden">D · Bara trädgård</button>
+  <button id="btn-pool-e" data-variant="poolE">E · Pool söder (långsida)</button>
+  <button id="btn-family" data-variant="family">⭐ F · Familjeparadis</button>
 
   <h3>Kameravinkel</h3>
   <button id="btn-perspective" class="active" data-camera="perspective">Perspektiv</button>
@@ -1194,6 +1195,305 @@ gardenDGroup.visible = false;
 scene.add(gardenDGroup);
 
 // =========================================================================
+// VARIANT F — FAMILJEPARADIS (min rekommendation)
+// Spa + bastu + pergola + utekök + odlingslådor + plaskdam + eldstad
+// =========================================================================
+const gardenFGroup = new THREE.Group();
+
+// 1) SPA på dedikerad träterass (öster om SV-altan, söder om huset)
+{
+    const sx = 4.5, sz = 5.5;
+    // Trädäck under spa
+    const platform = new THREE.Mesh(
+        new THREE.BoxGeometry(2.6, DECK_H, 2.6),
+        M.deck
+    );
+    platform.position.set(sx, DECK_H/2, sz);
+    platform.castShadow = true;
+    platform.receiveShadow = true;
+    gardenFGroup.add(platform);
+    // Tunna (öppen i toppen)
+    const tubF = new THREE.Mesh(
+        new THREE.CylinderGeometry(1, 1, 0.95, 24, 1, true),
+        M.hottub
+    );
+    tubF.position.set(sx, 0.95/2 + 0.16, sz);
+    tubF.castShadow = true;
+    gardenFGroup.add(tubF);
+    // Rim
+    const rimF = new THREE.Mesh(
+        new THREE.TorusGeometry(0.95, 0.07, 6, 24),
+        M.hottub
+    );
+    rimF.rotation.x = Math.PI / 2;
+    rimF.position.set(sx, 0.95 + 0.16, sz);
+    gardenFGroup.add(rimF);
+    // Inre svart vägg
+    const innerF = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.94, 0.94, 0.9, 24, 1, true),
+        new THREE.MeshStandardMaterial({ color: 0x2a1810, side: THREE.DoubleSide })
+    );
+    innerF.position.set(sx, 0.45 + 0.18, sz);
+    gardenFGroup.add(innerF);
+    // Vatten
+    const waterF = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.93, 0.93, 0.85, 24),
+        M.hottubH2O
+    );
+    waterF.position.set(sx, 0.45 + 0.20, sz);
+    gardenFGroup.add(waterF);
+    // Ångpuffar
+    const steamF = new THREE.MeshStandardMaterial({
+        color: 0xffffff, transparent: true, opacity: 0.4, emissive: 0xffffff, emissiveIntensity: 0.1
+    });
+    [[-0.2, 0.1], [0.2, -0.1], [0.1, 0.2]].forEach(([dx, dz]) => {
+        const s = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), steamF);
+        s.position.set(sx + dx, 1.5, sz + dz);
+        gardenFGroup.add(s);
+    });
+}
+
+// 2) BASTU 2,5 × 3,5 m i SV-bakre hörnet
+{
+    const saunaW = 2.5, saunaD = 3.5, saunaH = 2.4, saunaRidge = 0.5;
+    const bx = -7.5, bz = 13.5;
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(saunaW, saunaH, saunaD),
+        M.sauna
+    );
+    body.position.set(bx, saunaH/2, bz);
+    body.castShadow = true;
+    body.receiveShadow = true;
+    gardenFGroup.add(body);
+    // Tak (sadeltak)
+    const roofShape = new THREE.Shape();
+    roofShape.moveTo(-saunaW/2 - 0.15, 0);
+    roofShape.lineTo(saunaW/2 + 0.15, 0);
+    roofShape.lineTo(0, saunaRidge);
+    roofShape.lineTo(-saunaW/2 - 0.15, 0);
+    const roof = new THREE.Mesh(
+        new THREE.ExtrudeGeometry(roofShape, { depth: saunaD + 0.3, bevelEnabled: false }),
+        M.roof
+    );
+    roof.position.set(bx, saunaH, bz - saunaD/2 - 0.15);
+    roof.castShadow = true;
+    gardenFGroup.add(roof);
+    // Dörr (mot öster, mot spa)
+    const sd = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.9, 0.7), M.door);
+    sd.position.set(bx + saunaW/2 + 0.03, 0.95, bz);
+    gardenFGroup.add(sd);
+    // Stort glasfönster (öster — mot trädgården)
+    const sw = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 1.2, 1.5),
+        new THREE.MeshStandardMaterial({ color: 0xffe090, emissive: 0xff9020, emissiveIntensity: 0.5 })
+    );
+    sw.position.set(bx + saunaW/2 + 0.03, 1.5, bz - 1);
+    gardenFGroup.add(sw);
+}
+
+// 3) UTEKÖK på SE-altanen
+{
+    const kx = 5.5, kz = 3.0;
+    // Bänkstomme
+    const counter = new THREE.Mesh(
+        new THREE.BoxGeometry(2.4, 0.9, 0.7),
+        new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.8 })
+    );
+    counter.position.set(kx, 0.45 + DECK_H, kz);
+    counter.castShadow = true;
+    gardenFGroup.add(counter);
+    // Bänkskiva (svart)
+    const top = new THREE.Mesh(
+        new THREE.BoxGeometry(2.5, 0.05, 0.8),
+        new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4, metalness: 0.2 })
+    );
+    top.position.set(kx, 0.92 + DECK_H, kz);
+    top.castShadow = true;
+    gardenFGroup.add(top);
+    // Grill
+    const grill = new THREE.Mesh(
+        new THREE.BoxGeometry(0.7, 0.45, 0.55),
+        new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.7, roughness: 0.3 })
+    );
+    grill.position.set(kx - 0.6, 1.18 + DECK_H, kz);
+    grill.castShadow = true;
+    gardenFGroup.add(grill);
+    // Grill-lock
+    const grillLid = new THREE.Mesh(
+        new THREE.BoxGeometry(0.7, 0.15, 0.55),
+        new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5 })
+    );
+    grillLid.position.set(kx - 0.6, 1.48 + DECK_H, kz);
+    gardenFGroup.add(grillLid);
+    // Diskho (silver kvadrat)
+    const sink = new THREE.Mesh(
+        new THREE.BoxGeometry(0.4, 0.06, 0.4),
+        new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 0.85, roughness: 0.2 })
+    );
+    sink.position.set(kx + 0.6, 0.92 + DECK_H + 0.01, kz);
+    gardenFGroup.add(sink);
+    // Kran
+    const tap = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.025, 0.025, 0.3),
+        new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.8 })
+    );
+    tap.position.set(kx + 0.6, 1.1 + DECK_H, kz - 0.15);
+    gardenFGroup.add(tap);
+}
+
+// 4) PERGOLA 4 × 3 m med ljus skuggsegel — middags-/lounge-zon
+{
+    const px = 1, pz = 11, pw = 4, pd = 3, ph = 2.5;
+    // 4 stolpar
+    [[-pw/2, -pd/2], [pw/2, -pd/2], [-pw/2, pd/2], [pw/2, pd/2]].forEach(([dx, dz]) => {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.15, ph, 0.15), woodMat);
+        post.position.set(px + dx, ph/2, pz + dz);
+        post.castShadow = true;
+        gardenFGroup.add(post);
+    });
+    // Toppbalkar
+    [-pd/2, pd/2].forEach(dz => {
+        const beam = new THREE.Mesh(new THREE.BoxGeometry(pw + 0.4, 0.12, 0.15), woodMat);
+        beam.position.set(px, ph, pz + dz);
+        beam.castShadow = true;
+        gardenFGroup.add(beam);
+    });
+    // Spjälor
+    for (let i = 0; i <= 6; i++) {
+        const dx = -pw/2 + (i / 6) * pw;
+        const slat = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, pd + 0.4), woodMat);
+        slat.position.set(px + dx, ph + 0.1, pz);
+        slat.castShadow = true;
+        gardenFGroup.add(slat);
+    }
+    // Skuggsegel (semi-transparent)
+    const shade = new THREE.Mesh(
+        new THREE.PlaneGeometry(pw - 0.2, pd - 0.2),
+        new THREE.MeshStandardMaterial({ color: 0xddc8a8, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
+    );
+    shade.rotation.x = -Math.PI / 2;
+    shade.position.set(px, ph + 0.18, pz);
+    gardenFGroup.add(shade);
+    // Matbord 6 personer
+    const tableF = new THREE.Mesh(new THREE.BoxGeometry(2, 0.05, 1), woodMat);
+    tableF.position.set(px, 0.78, pz);
+    tableF.castShadow = true;
+    gardenFGroup.add(tableF);
+    [-0.85, 0, 0.85].forEach(dx => {
+        [-0.7, 0.7].forEach(dz => {
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.05, 0.42), woodMat);
+            seat.position.set(px + dx, 0.45, pz + dz);
+            seat.castShadow = true;
+            gardenFGroup.add(seat);
+        });
+    });
+}
+
+// 5) PLASKDAM 2 × 3 m (för barnen, lätt att ta bort senare)
+{
+    const dpx = -3, dpz = 7, dpW = 3, dpD = 2;
+    // Stenkant runt
+    const dpEdge = new THREE.Mesh(
+        new THREE.BoxGeometry(dpW + 0.3, 0.1, dpD + 0.3),
+        M.poolEdge
+    );
+    dpEdge.position.set(dpx, 0.05, dpz);
+    gardenFGroup.add(dpEdge);
+    // Vatten (ljust blått)
+    const dpWater = new THREE.Mesh(
+        new THREE.BoxGeometry(dpW, 0.12, dpD),
+        M.pool
+    );
+    dpWater.position.set(dpx, 0.06, dpz);
+    gardenFGroup.add(dpWater);
+}
+
+// 6) ELDSTAD med stockstolar (väster trädgård)
+{
+    const ex = -3, ez = 11;
+    const stoneRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.7, 0.15, 8, 24),
+        new THREE.MeshStandardMaterial({ color: 0x6a605a, roughness: 0.95 })
+    );
+    stoneRing.rotation.x = Math.PI / 2;
+    stoneRing.position.set(ex, 0.15, ez);
+    gardenFGroup.add(stoneRing);
+    // Flam
+    const flameF = new THREE.Mesh(
+        new THREE.ConeGeometry(0.3, 0.55, 8),
+        new THREE.MeshStandardMaterial({
+            color: 0xff8030, emissive: 0xff5010, emissiveIntensity: 0.7
+        })
+    );
+    flameF.position.set(ex, 0.4, ez);
+    gardenFGroup.add(flameF);
+    // 3 stockstolar runt
+    const logMatF = new THREE.MeshStandardMaterial({ color: 0x6a4828, roughness: 0.95 });
+    [0, 2*Math.PI/3, 4*Math.PI/3].forEach(a => {
+        const log = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1), logMatF);
+        log.position.set(ex + Math.cos(a) * 1.5, 0.35, ez + Math.sin(a) * 1.5);
+        log.rotation.z = Math.PI / 2;
+        log.rotation.y = a;
+        log.castShadow = true;
+        gardenFGroup.add(log);
+    });
+}
+
+// 7) 3 ODLINGSLÅDOR längs NÖ-sidan (sol, lättillgängligt från kök)
+{
+    const bedX = 8.5;
+    const bedColors = [
+        { soil: 0x4a3018, plant: 0x6a9a4a },   // sallat/grönt
+        { soil: 0x4a3018, plant: 0xa05050 },   // tomater
+        { soil: 0x4a3018, plant: 0x8aa066 }    // örter
+    ];
+    [4, 7, 10].forEach((bz, idx) => {
+        const bedFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(0.8, 0.4, 1.6),
+            new THREE.MeshStandardMaterial({ color: 0x6a4828, roughness: 0.9 })
+        );
+        bedFrame.position.set(bedX, 0.2, bz);
+        bedFrame.castShadow = true;
+        gardenFGroup.add(bedFrame);
+        // Jord
+        const bedSoil = new THREE.Mesh(
+            new THREE.BoxGeometry(0.7, 0.05, 1.5),
+            new THREE.MeshStandardMaterial({ color: bedColors[idx].soil })
+        );
+        bedSoil.position.set(bedX, 0.42, bz);
+        gardenFGroup.add(bedSoil);
+        // Växter (små klumpar)
+        for (let dz = -0.5; dz <= 0.5; dz += 0.5) {
+            const plant = new THREE.Mesh(
+                new THREE.SphereGeometry(0.18, 8, 6),
+                new THREE.MeshStandardMaterial({ color: bedColors[idx].plant, roughness: 1.0 })
+            );
+            plant.position.set(bedX, 0.55, bz + dz);
+            gardenFGroup.add(plant);
+        }
+    });
+}
+
+// 8) STENSTIG mellan spa, bastu och plaskdam
+{
+    const stepMatF = new THREE.MeshStandardMaterial({ color: 0xc4bfae, roughness: 0.95 });
+    const path = [
+        [4.5, 5.5],  // spa
+        [3, 7], [1, 8], [-1, 9], [-3, 10], [-5, 11], [-6.5, 12.5]  // bend toward sauna
+    ];
+    for (let i = 1; i < path.length; i++) {
+        const [x, z] = path[i];
+        const stone = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.05, 0.4), stepMatF);
+        stone.position.set(x, 0.025, z);
+        stone.receiveShadow = true;
+        gardenFGroup.add(stone);
+    }
+}
+
+gardenFGroup.visible = false;
+scene.add(gardenFGroup);
+
+// =========================================================================
 // VARIANT B: HOT TUB + SAUNA
 // =========================================================================
 const spaGroup = new THREE.Group();
@@ -1419,6 +1719,7 @@ function setVariant(v) {
     poolGroupE.visible   = v === 'poolE';
     deckEGroup.visible   = v === 'poolE';
     gardenDGroup.visible = v === 'garden';
+    gardenFGroup.visible = v === 'family';
 
     poolLabel.visible  = v === 'pool';
     spaLabel.visible   = v === 'spa';
@@ -1431,12 +1732,14 @@ function setVariant(v) {
     document.getElementById('btn-pool-c').classList.toggle('active', v === 'poolC');
     document.getElementById('btn-pool-e').classList.toggle('active', v === 'poolE');
     document.getElementById('btn-garden').classList.toggle('active', v === 'garden');
+    document.getElementById('btn-family').classList.toggle('active', v === 'family');
 }
 document.getElementById('btn-pool').addEventListener('click',   () => setVariant('pool'));
 document.getElementById('btn-spa').addEventListener('click',    () => setVariant('spa'));
 document.getElementById('btn-pool-c').addEventListener('click', () => setVariant('poolC'));
 document.getElementById('btn-pool-e').addEventListener('click', () => setVariant('poolE'));
 document.getElementById('btn-garden').addEventListener('click', () => setVariant('garden'));
+document.getElementById('btn-family').addEventListener('click', () => setVariant('family'));
 
 // Camera modes
 function setCamera(mode) {

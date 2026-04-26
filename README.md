@@ -24,7 +24,7 @@ GitHub Pages: <https://sebastianclaesson.github.io/Kopparmossvagen25/>
 - **Hus:** A-hus Lindbacken R Flex (modern), 172 m² över 2 våningar
 - **Carport + förråd:** 33,8 m²
 
-## 🌱 5 Layout-varianter
+## 🌱 6 Layout-varianter
 
 | | Variant | Total (medel) |
 |---|---|---|
@@ -32,9 +32,10 @@ GitHub Pages: <https://sebastianclaesson.github.io/Kopparmossvagen25/>
 | **B** | Pool längs SV (vid carporten) | ~827 000 kr |
 | **C** | Bubbelpool + bastu (utan pool) | ~680 000 kr |
 | **D** | Bara fin trädgård (pergola + eldstad) | ~555 000 kr |
-| **E** | Pool i söder (långsida mot hus) ⭐ | ~830 000 kr |
+| **E** | Pool i söder (långsida mot hus) | ~830 000 kr |
+| **⭐ F** | Familjeparadis — bastu + spa + utekök + pergola + plaskdam + odlingslådor + eldstad | ~921 000 kr |
 
-Klicka mellan varianterna i toppen av 2D- och 3D-vyerna.
+Klicka mellan varianterna i toppen av 2D- och 3D-vyerna. Variant F är min ärliga rekommendation: året-runt-användning, lägre drift än pool, högre återförsäljningsvärde.
 
 ## ⚙️ Teknik
 
