@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D-vy — Villa Lindbacken, Vaksala-Lunda 39:4</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #1a1a1a;
+    color: white;
+  }
+  #canvas-container {
+    position: fixed;
+    inset: 0;
+  }
+  canvas { display: block; }
+
+  .ui {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .ui > * { pointer-events: auto; }
+
+  header.ui {
+    top: 12px;
+    left: 12px;
+    background: rgba(20, 20, 20, 0.86);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    max-width: 360px;
+  }
+  header.ui h1 { font-size: 0.92rem; margin-bottom: 2px; }
+  header.ui .sub { font-size: 0.72rem; color: #aaa; margin-bottom: 4px; }
+  header.ui a {
+    color: #6acaff;
+    text-decoration: none;
+    font-size: 0.78rem;
+  }
+  header.ui a:hover { text-decoration: underline; }
+
+  .panel.ui {
+    top: 12px;
+    right: 12px;
+    background: rgba(20, 20, 20, 0.86);
+    padding: 10px 12px;
+    border-radius: 8px;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .panel h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #888;
+    margin-top: 6px;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+  }
+  .panel h3:first-child { margin-top: 0; }
+  .panel button {
+    width: 100%;
+    padding: 6px 10px;
+    background: transparent;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .panel button.active {
+    background: #2d4a2b;
+    border-color: #5a8a50;
+  }
+  .panel button:hover:not(.active) {
+    background: #2a2a2a;
+  }
+
+  .info.ui {
+    bottom: 12px;
+    left: 12px;
+    background: rgba(20, 20, 20, 0.86);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.74rem;
+    max-width: 320px;
+    line-height: 1.55;
+  }
+  .info kbd {
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 0.68rem;
+    font-family: 'Courier New', monospace;
+  }
+
+  .compass.ui {
+    bottom: 12px;
+    right: 12px;
+    width: 80px;
+    height: 80px;
+    background: rgba(20, 20, 20, 0.86);
+    border-radius: 50%;
+    padding: 6px;
+  }
+  .compass svg { width: 100%; height: 100%; }
+
+  #loading {
+    position: fixed;
+    inset: 0;
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">Laddar 3D-scen…</div>
+<div id="canvas-container"></div>
+
+<header class="ui">
+  <h1>3D-VY · Vaksala-Lunda 39:4</h1>
+  <div class="sub">A-hus Lindbacken R Flex · 1 enhet = 1 m</div>
+  <a href="index.html">2D</a> ·
+  <a href="priser.html">Priser</a> ·
+  <a href="planering.html">Planering</a>
+</header>
+
+<div class="panel ui">
+  <h3>Variant</h3>
+  <button id="btn-pool" class="active" data-variant="pool">A · Pool i söder (kortsidan)</button>
+  <button id="btn-pool-c" data-variant="poolC">B · Pool längs SV (vid carporten)</button>
+  <button id="btn-spa" data-variant="spa">C · Bubbelpool + bastu</button>
+  <button id="btn-garden" data-variant="garden">D · Bara fin trädgård</button>
+  <button id="btn-pool-e" data-variant="poolE">E · Pool söder, långsida mot hus</button>
+
+  <h3>Kameravinkel</h3>
+  <button id="btn-perspective" class="active" data-camera="perspective">Perspektiv</button>
+  <button id="btn-iso" data-camera="iso">Isometrisk</button>
+  <button id="btn-top" data-camera="top">Topp</button>
+
+  <h3>Visa/dölj</h3>
+  <button id="btn-roof" class="active" data-toggle="roof">Tak: PÅ</button>
+  <button id="btn-trees" class="active" data-toggle="trees">Träd: PÅ</button>
+  <button id="btn-grid" class="active" data-toggle="grid">1 m-rutnät: PÅ</button>
+</div>
+
+<div class="info ui">
+  <strong>Navigering:</strong>
+  <kbd>Vänster mus</kbd> rotera ·
+  <kbd>Höger mus</kbd> panorera ·
+  <kbd>Scroll</kbd> zoom<br>
+  <span style="color:#888;">Tomt 20,25×34 m (688,5 m²) · Hus 7,73×12,83 m · Carport 3,94×8,69 m · Pool 4×8 m · Bastu 2×3 m · Spa ø 2 m · Studsmatta ø 4,3 m. Setbacks: NÖ 3m, SV 1,5m (carport), NV 5m fram.</span>
+</div>
+
+<div class="compass ui">
+  <svg viewBox="-50 -50 100 100" id="compass-svg">
+    <circle cx="0" cy="0" r="42" fill="none" stroke="#888" stroke-width="1.2"/>
+    <g id="compass-rotator">
+      <polygon points="0,-32 5,0 0,32 -5,0" fill="#888"/>
+      <polygon points="0,-32 5,0 0,0" fill="#d44"/>
+      <polygon points="0,32 -5,0 0,0" fill="#d44"/>
+      <text x="0" y="-36" text-anchor="middle" fill="white" font-size="11" font-weight="bold" font-family="sans-serif">N</text>
+      <text x="0" y="46" text-anchor="middle" fill="#aaa" font-size="9" font-family="sans-serif">S</text>
+      <text x="-40" y="3" text-anchor="middle" fill="#aaa" font-size="9" font-family="sans-serif">V</text>
+      <text x="40" y="3" text-anchor="middle" fill="#aaa" font-size="9" font-family="sans-serif">Ö</text>
+    </g>
+  </svg>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ====================================================================
+// COORDINATE SYSTEM
+//   X = NE-SW axis  (+X is NE / right when looking from south)
+//   Y = up
+//   Z = NW-SE axis  (-Z is NW / road side, +Z is SE / back garden)
+// ====================================================================
+
+// === MEASUREMENTS (meters) — exakt enligt bygglov + förrättningskarta KA1 ===
+const PLOT_W = 20.25;  // along road (short side) — exakt från förrättningskartan
+const PLOT_D = 34;     // perpendicular to road (long side) — area = 688,5 m²
+const FRONT_SETBACK = 5;  // hus & carport NV-gavlar 5m från vägen (i linje)
+const HOUSE_W = 7.73;
+const HOUSE_D = 12.83;
+const HOUSE_H = 6;
+const HOUSE_RIDGE_RISE = 1.97; // 27° pitch
+const CARPORT_W = 3.94;
+const CARPORT_D = 8.69;
+const CARPORT_H = 2.3;
+const CARPORT_RIDGE = 0.84;    // 23° pitch
+const STORAGE_D = 2.24;        // back portion of carport is enclosed storage
+const POOL_W = 4, POOL_D = 8, POOL_DEPTH = 0.5;
+const HOTTUB_R = 1, HOTTUB_H = 0.95;
+const SAUNA_W = 2, SAUNA_D = 3, SAUNA_H = 2.4;
+const SAUNA_RIDGE = 0.4;
+const TRAMP_R = 2.15, TRAMP_H = 0.55;   // SALT Premium 4,3 m diameter
+
+// === BUILDING PLACEMENT (från användarens uppgifter) ===
+// Plot X = -PLOT_W/2..+PLOT_W/2, Z = -PLOT_D/2..+PLOT_D/2. Road at Z < -PLOT_D/2.
+//
+// House: 3,0 m till NÖ-granne (höger), 5 m fram till vägen
+const HOUSE_X = +PLOT_W/2 - 3.0 - HOUSE_W/2;            // = 3.26 (anchored to NÖ side)
+const HOUSE_Z = -PLOT_D/2 + FRONT_SETBACK + HOUSE_D/2;  // = -5.585 (5m front setback)
+//
+// Carport: 1,5 m till SV-granne (vänster), NV-gavel i linje med husets NV-gavel
+const CARPORT_X = -PLOT_W/2 + 1.5 + CARPORT_W/2;         // = -6.655
+const CARPORT_Z = HOUSE_Z - HOUSE_D/2 + CARPORT_D/2;     // NV aligned with house NV
+//                                                          // = -7.655
+//
+// Lucka mellan carport och hus: 20,25 − 1,5 − 3,94 − 7,73 − 3,0 = 4,08 m
+// Bakre trädgård (söder om huset): PLOT_D − FRONT_SETBACK − HOUSE_D = 16,17 m
+
+// === SCENE SETUP ===
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xc8dcef);
+scene.fog = new THREE.Fog(0xc8dcef, 60, 180);
+
+const aspect = window.innerWidth / window.innerHeight;
+const camera = new THREE.PerspectiveCamera(42, aspect, 0.1, 600);
+camera.position.set(24, 18, 28);
+
+const orthoSize = 20;
+const orthoCam = new THREE.OrthographicCamera(
+    -orthoSize * aspect, orthoSize * aspect,
+    orthoSize, -orthoSize,
+    0.1, 600
+);
+orthoCam.position.set(24, 18, 28);
+
+let activeCamera = camera;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.maxPolarAngle = Math.PI / 2 - 0.02;
+controls.minDistance = 8;
+controls.maxDistance = 80;
+controls.target.set(0, 1, 0);
+
+// === LIGHTING ===
+scene.add(new THREE.AmbientLight(0xffffff, 0.42));
+
+const sun = new THREE.DirectionalLight(0xfff5dc, 1.05);
+sun.position.set(-22, 35, 28); // afternoon sun from SW
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -28;
+sun.shadow.camera.right = 28;
+sun.shadow.camera.top = 28;
+sun.shadow.camera.bottom = -28;
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far = 90;
+sun.shadow.bias = -0.0004;
+scene.add(sun);
+
+scene.add(new THREE.HemisphereLight(0xb0d8ff, 0x4a7a3a, 0.32));
+
+// === MATERIALS ===
+const M = {
+    grass:    new THREE.MeshStandardMaterial({ color: 0x88a868, roughness: 1.0 }),
+    surround: new THREE.MeshStandardMaterial({ color: 0x9ca58e, roughness: 1.0 }),
+    asphalt:  new THREE.MeshStandardMaterial({ color: 0x484848, roughness: 0.95 }),
+    house:    new THREE.MeshStandardMaterial({ color: 0x3a5a30, roughness: 0.85 }),
+    roof:     new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.7 }),
+    solar:    new THREE.MeshStandardMaterial({ color: 0x16243a, metalness: 0.5, roughness: 0.35 }),
+    deck:     new THREE.MeshStandardMaterial({ color: 0xa87852, roughness: 0.85 }),
+    paving:   new THREE.MeshStandardMaterial({ color: 0xc4bfae, roughness: 0.95 }),
+    glass:    new THREE.MeshStandardMaterial({ color: 0x9fc8e0, emissive: 0x152030, transparent: true, opacity: 0.65 }),
+    door:     new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6 }),
+    pool:     new THREE.MeshStandardMaterial({ color: 0x3ec0e8, roughness: 0.18, metalness: 0.15 }),
+    poolEdge: new THREE.MeshStandardMaterial({ color: 0xb8b3a2, roughness: 0.95 }),
+    hottub:   new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.7, side: THREE.DoubleSide }),
+    hottubH2O:new THREE.MeshStandardMaterial({ color: 0x3ec0e8, roughness: 0.18, metalness: 0.15 }),
+    sauna:    new THREE.MeshStandardMaterial({ color: 0x1c1814, roughness: 0.85 }),
+    hedge:    new THREE.MeshStandardMaterial({ color: 0x355530, roughness: 1.0 }),
+    trunk:    new THREE.MeshStandardMaterial({ color: 0x553a22, roughness: 0.95 }),
+    cherry:   new THREE.MeshStandardMaterial({ color: 0xf5b8c4, roughness: 0.9 }),
+    apple:    new THREE.MeshStandardMaterial({ color: 0x6a9a55, roughness: 0.9 }),
+    car:      new THREE.MeshStandardMaterial({ color: 0x3a3a42, roughness: 0.4, metalness: 0.5 }),
+    play:     new THREE.MeshStandardMaterial({ color: 0xb88450, roughness: 0.9 }),
+    slide:    new THREE.MeshStandardMaterial({ color: 0xc04030, roughness: 0.7 }),
+    trampFr:  new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7 }),
+    trampMat: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.95 }),
+};
+
+// === GROUND (surrounding context) ===
+const surround = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), M.surround);
+surround.rotation.x = -Math.PI / 2;
+surround.position.y = -0.04;
+surround.receiveShadow = true;
+scene.add(surround);
+
+// === PLOT (lawn) ===
+const plot = new THREE.Mesh(new THREE.PlaneGeometry(PLOT_W, PLOT_D), M.grass);
+plot.rotation.x = -Math.PI / 2;
+plot.receiveShadow = true;
+scene.add(plot);
+
+// Plot boundary outline
+const plotEdgeGeom = new THREE.EdgesGeometry(new THREE.PlaneGeometry(PLOT_W, PLOT_D));
+const plotEdge = new THREE.LineSegments(plotEdgeGeom, new THREE.LineBasicMaterial({ color: 0x4a4a4a }));
+plotEdge.rotation.x = -Math.PI / 2;
+plotEdge.position.y = 0.015;
+scene.add(plotEdge);
+
+// 1m grid overlay (toggleable)
+const gridGroup = new THREE.Group();
+const gridMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.08 });
+const gridPts = [];
+for (let i = -PLOT_W/2; i <= PLOT_W/2; i++) {
+    gridPts.push(new THREE.Vector3(i, 0.012, -PLOT_D/2));
+    gridPts.push(new THREE.Vector3(i, 0.012, PLOT_D/2));
+}
+for (let j = -PLOT_D/2; j <= PLOT_D/2; j++) {
+    gridPts.push(new THREE.Vector3(-PLOT_W/2, 0.012, j));
+    gridPts.push(new THREE.Vector3(PLOT_W/2, 0.012, j));
+}
+const gridGeom = new THREE.BufferGeometry().setFromPoints(gridPts);
+gridGroup.add(new THREE.LineSegments(gridGeom, gridMat));
+scene.add(gridGroup);
+
+// === ROAD (Kopparmossvägen) along NW edge ===
+const road = new THREE.Mesh(new THREE.PlaneGeometry(60, 7), M.asphalt);
+road.rotation.x = -Math.PI / 2;
+road.position.set(0, 0.005, -PLOT_D/2 - 3.5);
+road.receiveShadow = true;
+scene.add(road);
+
+const dashMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.7 });
+for (let i = -28; i < 28; i += 4) {
+    const dash = new THREE.Mesh(new THREE.PlaneGeometry(2, 0.18), dashMat);
+    dash.rotation.x = -Math.PI / 2;
+    dash.position.set(i, 0.011, -PLOT_D/2 - 3.5);
+    scene.add(dash);
+}
+
+// === HOUSE ===
+const houseGroup = new THREE.Group();
+
+// Body
+const houseBody = new THREE.Mesh(new THREE.BoxGeometry(HOUSE_W, HOUSE_H, HOUSE_D), M.house);
+houseBody.position.y = HOUSE_H / 2;
+houseBody.castShadow = true;
+houseBody.receiveShadow = true;
+houseGroup.add(houseBody);
+
+// Floor strip between floors (decorative line)
+const beltGeom = new THREE.BoxGeometry(HOUSE_W + 0.05, 0.12, HOUSE_D + 0.05);
+const beltMat = new THREE.MeshStandardMaterial({ color: 0x1a2818 });
+const belt = new THREE.Mesh(beltGeom, beltMat);
+belt.position.y = 3;
+houseGroup.add(belt);
+
+// Roof (gable, ridge along z axis)
+const roofShape = new THREE.Shape();
+roofShape.moveTo(-HOUSE_W/2 - 0.2, 0);
+roofShape.lineTo(HOUSE_W/2 + 0.2, 0);
+roofShape.lineTo(0, HOUSE_RIDGE_RISE);
+roofShape.lineTo(-HOUSE_W/2 - 0.2, 0);
+
+const roofGeom = new THREE.ExtrudeGeometry(roofShape, {
+    depth: HOUSE_D + 0.4,
+    bevelEnabled: false
+});
+const houseRoof = new THREE.Mesh(roofGeom, M.roof);
+houseRoof.position.set(0, HOUSE_H, -HOUSE_D/2 - 0.2);
+houseRoof.castShadow = true;
+houseRoof.receiveShadow = true;
+houseGroup.add(houseRoof);
+
+// Solar panels — sits ON SW roof slope (thin tilted box, no clipping into roof)
+{
+    const slopeAngle = Math.atan(HOUSE_RIDGE_RISE / (HOUSE_W/2));
+    const solarTilt = new THREE.Group();
+    solarTilt.position.set(-HOUSE_W/4, HOUSE_H + HOUSE_RIDGE_RISE/2, 0);
+    solarTilt.rotation.z = slopeAngle;
+    houseGroup.add(solarTilt);
+
+    // Thin BoxGeometry — bottom face sits clearly on the slope, no clipping
+    const solar = new THREE.Mesh(
+        new THREE.BoxGeometry(3.0, 0.06, 9.5),
+        M.solar
+    );
+    solar.position.y = 0.08;          // box center ~0.05 above slope (no clipping)
+    solar.castShadow = true;
+    solar.receiveShadow = true;
+    solarTilt.add(solar);
+
+    // Subtle grid pattern on top surface
+    const gridMatS = new THREE.LineBasicMaterial({ color: 0x0a1828 });
+    const sg = [];
+    for (let i = -1; i <= 1; i++) {
+        sg.push(new THREE.Vector3(i, 0.115, -4.7));
+        sg.push(new THREE.Vector3(i, 0.115,  4.7));
+    }
+    for (let j = -4; j <= 4; j += 2) {
+        sg.push(new THREE.Vector3(-1.5, 0.115, j));
+        sg.push(new THREE.Vector3( 1.5, 0.115, j));
+    }
+    solarTilt.add(new THREE.LineSegments(
+        new THREE.BufferGeometry().setFromPoints(sg), gridMatS
+    ));
+}
+
+// Chimney
+const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.6, 0.55), M.roof);
+chimney.position.set(0, HOUSE_H + HOUSE_RIDGE_RISE - 0.1, 1);
+chimney.castShadow = true;
+houseGroup.add(chimney);
+
+// Windows + doors on SW long side (negative x face)
+function addRect(group, w, h, d, color, x, y, z) {
+    const m = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({ color })
+    );
+    m.position.set(x, y, z);
+    group.add(m);
+    return m;
+}
+// === SV-LÅNGSIDA (mot trädgård) — 2 dörrar enligt A-F01 ===
+// ALTANDÖRR (matplats): bred skjut-/glaspartidörr i SE-änden — flyttad dit (tidigare stort fönster)
+// Glasparti i ramverket — gör dörren synlig som riktigt fönsterdörr
+{
+    const altanDoorZ = 4.0;
+    const altanDoorW = 2.6;       // brett glasparti (FD-typ)
+    const altanDoorH = 2.1;
+    // Mörk ram runt dörren
+    const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(0.08, altanDoorH, altanDoorW),
+        new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.6 })
+    );
+    frame.position.set(-HOUSE_W/2 - 0.04, altanDoorH/2, altanDoorZ);
+    houseGroup.add(frame);
+    // Glasparti (något indraget)
+    const glass = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, altanDoorH - 0.15, altanDoorW - 0.15),
+        new THREE.MeshStandardMaterial({
+            color: 0xa8d4e8, emissive: 0x152030, transparent: true, opacity: 0.7
+        })
+    );
+    glass.position.set(-HOUSE_W/2 - 0.045, altanDoorH/2, altanDoorZ);
+    houseGroup.add(glass);
+    // Lodrät delning (mittstolpe mellan två glasdörrar)
+    const mullion = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, altanDoorH - 0.1, 0.06),
+        new THREE.MeshStandardMaterial({ color: 0x111111 })
+    );
+    mullion.position.set(-HOUSE_W/2 - 0.05, altanDoorH/2, altanDoorZ);
+    houseGroup.add(mullion);
+}
+// Dörr 2: vardagsrum-dörr i mitten (mindre, traditional)
+{
+    const doorZ = -2;
+    const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(0.08, 2.1, 1.2),
+        new THREE.MeshStandardMaterial({ color: 0x111111 })
+    );
+    frame.position.set(-HOUSE_W/2 - 0.04, 1.05, doorZ);
+    houseGroup.add(frame);
+    const glass2 = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 1.95, 1.05),
+        new THREE.MeshStandardMaterial({
+            color: 0xa8d4e8, emissive: 0x152030, transparent: true, opacity: 0.7
+        })
+    );
+    glass2.position.set(-HOUSE_W/2 - 0.045, 1.05, doorZ);
+    houseGroup.add(glass2);
+}
+// Stort fönster mellan dörrarna (vardagsrum)
+const w1a = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.5, 2.0), M.glass);
+w1a.position.set(-HOUSE_W/2 - 0.025, 1.5, 1);
+houseGroup.add(w1a);
+// Fönster norr om mitten-dörren (gästrum)
+const w1c = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.5, 1.4), M.glass);
+w1c.position.set(-HOUSE_W/2 - 0.025, 1.5, -4.5);
+houseGroup.add(w1c);
+// Övre våning SV-långsidan (3 sovrumsfönster)
+[-3.5, 0, 3.5].forEach(z => {
+    const w = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.4, 1.2), M.glass);
+    w.position.set(-HOUSE_W/2 - 0.025, 4.4, z);
+    houseGroup.add(w);
+});
+
+// === NÖ-LÅNGSIDA (mot granne) — 1 dörr + 4 fönster enligt A-F02 ===
+// Dörr (kitchen exit / sidodörr) i SE-änden
+addRect(houseGroup, 0.06, 2.0, 1.0, 0x222222, HOUSE_W/2 + 0.03, 1.0, 3.5);
+// Fönster på bottenvåning (mindre än SV-sidan)
+[-4, -1.5, 1, 5.5].forEach(z => {
+    const w = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.2, 1.0), M.glass);
+    w.position.set(HOUSE_W/2 + 0.025, 1.5, z);
+    houseGroup.add(w);
+});
+// Övre våning (4 sovrumsfönster)
+[-4, -1.5, 1, 4].forEach(z => {
+    const w = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.2, 1.0), M.glass);
+    w.position.set(HOUSE_W/2 + 0.025, 4.4, z);
+    houseGroup.add(w);
+});
+
+// === NV-GAVEL (entréfasad mot vägen) — entré + groventré + smalfönster ===
+const ed = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.2, 0.06), M.door);
+ed.position.set(-1.8, 1.1, -HOUSE_D/2 - 0.03);
+houseGroup.add(ed);
+const ed2 = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.0, 0.06), M.door);
+ed2.position.set(1.5, 1.0, -HOUSE_D/2 - 0.03);
+houseGroup.add(ed2);
+[ {x: -2.5, y: 4.4}, {x: 0.5, y: 4.4}, {x: 2.5, y: 4.4} ].forEach(p => {
+    const w = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.0, 0.04), M.glass);
+    w.position.set(p.x, p.y, -HOUSE_D/2 - 0.025);
+    houseGroup.add(w);
+});
+
+// === SE-GAVEL (baksida mot trädgård) — 2 stora fönster bottenvåning + 2 övre, enligt A-F02 ===
+// Bottenvåning: två stora fönster (vardagsrum + matplats vy mot trädgård)
+[ {x: -2.0, w: 2.4}, {x: 1.9, w: 2.4} ].forEach(p => {
+    const win = new THREE.Mesh(new THREE.BoxGeometry(p.w, 2.0, 0.04), M.glass);
+    win.position.set(p.x, 1.3, HOUSE_D/2 + 0.025);
+    houseGroup.add(win);
+});
+// Övre våning: två stora fönster (sovrum med utsikt)
+[ {x: -1.8, w: 1.6}, {x: 1.8, w: 1.6} ].forEach(p => {
+    const win = new THREE.Mesh(new THREE.BoxGeometry(p.w, 1.5, 0.04), M.glass);
+    win.position.set(p.x, 4.4, HOUSE_D/2 + 0.025);
+    houseGroup.add(win);
+});
+
+houseGroup.position.set(HOUSE_X, 0, HOUSE_Z);
+scene.add(houseGroup);
+
+// === CARPORT ===
+const carportGroup = new THREE.Group();
+
+// Storage section (SE end, fully enclosed)
+const storage = new THREE.Mesh(
+    new THREE.BoxGeometry(CARPORT_W, CARPORT_H, STORAGE_D),
+    M.house
+);
+storage.position.set(0, CARPORT_H/2, CARPORT_D/2 - STORAGE_D/2);
+storage.castShadow = true;
+storage.receiveShadow = true;
+carportGroup.add(storage);
+
+// Storage door (on NW face of storage section)
+const stDoor = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.9, 0.06), M.door);
+stDoor.position.set(0, 0.95, CARPORT_D/2 - STORAGE_D - 0.03);
+carportGroup.add(stDoor);
+
+// Open carport bay: 4 corner posts + side walls (low) + roof
+const bayD = CARPORT_D - STORAGE_D;
+const bayCenterZ = -STORAGE_D/2;
+
+// SW long-side wall (low panel)
+const swPanel = new THREE.Mesh(
+    new THREE.BoxGeometry(0.15, CARPORT_H, bayD),
+    M.house
+);
+swPanel.position.set(-CARPORT_W/2 + 0.075, CARPORT_H/2, bayCenterZ);
+swPanel.castShadow = true;
+carportGroup.add(swPanel);
+
+// NE long-side: just posts (open)
+[-bayD/2 + 0.3, bayD/2 - 0.3].forEach(z => {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.18, CARPORT_H, 0.18), M.house);
+    post.position.set(CARPORT_W/2 - 0.09, CARPORT_H/2, bayCenterZ + z);
+    post.castShadow = true;
+    carportGroup.add(post);
+});
+
+// Carport roof (gable, ridge along z, extends past structure for overhang)
+const cpRoofShape = new THREE.Shape();
+cpRoofShape.moveTo(-CARPORT_W/2 - 0.2, 0);
+cpRoofShape.lineTo(CARPORT_W/2 + 0.2, 0);
+cpRoofShape.lineTo(0, CARPORT_RIDGE);
+cpRoofShape.lineTo(-CARPORT_W/2 - 0.2, 0);
+
+const cpRoofGeom = new THREE.ExtrudeGeometry(cpRoofShape, {
+    depth: CARPORT_D + 0.4,
+    bevelEnabled: false
+});
+const carportRoof = new THREE.Mesh(cpRoofGeom, M.roof);
+carportRoof.position.set(0, CARPORT_H, -CARPORT_D/2 - 0.2);
+carportRoof.castShadow = true;
+carportRoof.receiveShadow = true;
+carportGroup.add(carportRoof);
+
+carportGroup.position.set(CARPORT_X, 0, CARPORT_Z);
+scene.add(carportGroup);
+
+// === CAR (under carport) ===
+const car = new THREE.Group();
+const carBody = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.55, 4.5), M.car);
+carBody.position.y = 0.6;
+carBody.castShadow = true;
+car.add(carBody);
+const carCab = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.55, 2.3), M.car);
+carCab.position.y = 1.18;
+carCab.position.z = 0.1;
+carCab.castShadow = true;
+car.add(carCab);
+car.position.set(CARPORT_X, 0, CARPORT_Z - STORAGE_D/2 - 1.5);
+scene.add(car);
+
+// === DRIVEWAY ===
+const driveway = new THREE.Mesh(new THREE.PlaneGeometry(5, 5), M.asphalt);
+driveway.rotation.x = -Math.PI / 2;
+driveway.position.set(CARPORT_X, 0.012, CARPORT_Z - CARPORT_D/2 - 2.5);
+driveway.receiveShadow = true;
+scene.add(driveway);
+
+// Front walkway from driveway to entrance
+const walkway = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 5), M.paving);
+walkway.rotation.x = -Math.PI / 2;
+walkway.position.set(HOUSE_X - 1.8, 0.013, HOUSE_Z - HOUSE_D/2 - 2.6);
+walkway.receiveShadow = true;
+scene.add(walkway);
+
+// === DECK (L-shape: SV-strip alongside house + SE-strip across SE gable) ===
+const DECK_W = 3.5;     // narrower so it doesn't crowd carport (gap 0.33m to carport NE wall)
+const DECK_H = 0.16;
+
+// SV-deck along full SW long side of house (carport sits on the other side of the gap)
+const deckMain = new THREE.Mesh(new THREE.BoxGeometry(DECK_W, DECK_H, HOUSE_D), M.deck);
+deckMain.position.set(HOUSE_X - HOUSE_W/2 - DECK_W/2, DECK_H/2, HOUSE_Z);
+deckMain.castShadow = true;
+deckMain.receiveShadow = true;
+scene.add(deckMain);
+
+// SE-deck across SE gable + connecting back to SV-deck
+const deckSouthW = HOUSE_W + DECK_W;
+const deckSouth = new THREE.Mesh(new THREE.BoxGeometry(deckSouthW, DECK_H, DECK_W), M.deck);
+deckSouth.position.set(HOUSE_X - DECK_W/2, DECK_H/2, HOUSE_Z + HOUSE_D/2 + DECK_W/2);
+deckSouth.castShadow = true;
+deckSouth.receiveShadow = true;
+scene.add(deckSouth);
+
+// Path strip between carport and house (in the gap)
+const pathMat = new THREE.MeshStandardMaterial({ color: 0xc4bfae, roughness: 0.95 });
+const carportSEZ = CARPORT_Z + CARPORT_D / 2;
+const houseNWZ = HOUSE_Z - HOUSE_D / 2;
+const sidePath = new THREE.Mesh(new THREE.PlaneGeometry(1, CARPORT_D), pathMat);
+sidePath.rotation.x = -Math.PI / 2;
+sidePath.position.set(
+    (CARPORT_X + CARPORT_W/2 + HOUSE_X - HOUSE_W/2) / 2,  // mid-x of gap
+    0.02,
+    CARPORT_Z                                              // aligned with carport length
+);
+sidePath.receiveShadow = true;
+scene.add(sidePath);
+
+// Dining table on SE-deck (8 chairs)
+const plankMat = new THREE.MeshStandardMaterial({ color: 0x8a6038, roughness: 0.9 });
+const tableX = HOUSE_X;
+const tableZ = HOUSE_Z + HOUSE_D/2 + DECK_W/2;
+
+const tableTop = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.05, 1.0), plankMat);
+tableTop.position.set(tableX, DECK_H + 0.78, tableZ);
+tableTop.castShadow = true;
+scene.add(tableTop);
+[ [-1.1, -0.4], [-1.1, 0.4], [1.1, -0.4], [1.1, 0.4] ].forEach(([dx, dz]) => {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.74, 0.06), plankMat);
+    leg.position.set(tableX + dx, DECK_H + 0.41, tableZ + dz);
+    scene.add(leg);
+});
+const chairMat = new THREE.MeshStandardMaterial({ color: 0x8a6038, roughness: 0.85 });
+[
+    [-1.1, -0.7], [-0.4, -0.7], [0.4, -0.7], [1.1, -0.7],
+    [-1.1,  0.7], [-0.4,  0.7], [0.4,  0.7], [1.1,  0.7]
+].forEach(([dx, dz]) => {
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.4), chairMat);
+    seat.position.set(tableX + dx, DECK_H + 0.45, tableZ + dz);
+    seat.castShadow = true;
+    scene.add(seat);
+});
+
+// === HEDGES (along NE and SW long property boundaries) ===
+const HEDGE_W = 1.0;
+const HEDGE_H = 1.6;
+const swHedge = new THREE.Mesh(new THREE.BoxGeometry(HEDGE_W, HEDGE_H, PLOT_D), M.hedge);
+swHedge.position.set(-PLOT_W/2 + HEDGE_W/2, HEDGE_H/2, 0);
+swHedge.castShadow = true;
+swHedge.receiveShadow = true;
+scene.add(swHedge);
+
+const neHedge = new THREE.Mesh(new THREE.BoxGeometry(HEDGE_W, HEDGE_H, PLOT_D), M.hedge);
+neHedge.position.set(PLOT_W/2 - HEDGE_W/2, HEDGE_H/2, 0);
+neHedge.castShadow = true;
+neHedge.receiveShadow = true;
+scene.add(neHedge);
+
+// Lighter green hedge "tops" for texture
+const hedgeTopMat = new THREE.MeshStandardMaterial({ color: 0x4a7045, roughness: 1.0 });
+[swHedge, neHedge].forEach(h => {
+    const top = new THREE.Mesh(new THREE.BoxGeometry(HEDGE_W * 1.05, 0.1, PLOT_D), hedgeTopMat);
+    top.position.copy(h.position);
+    top.position.y = HEDGE_H + 0.05;
+    scene.add(top);
+});
+
+// === TREES ===
+const treesGroup = new THREE.Group();
+
+function makeTree(crownColor, crownR, height, x, z) {
+    const tree = new THREE.Group();
+    const trunkH = height * 0.45;
+    const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.18, 0.22, trunkH, 8),
+        M.trunk
+    );
+    trunk.position.y = trunkH / 2;
+    trunk.castShadow = true;
+    tree.add(trunk);
+
+    const crown = new THREE.Mesh(
+        new THREE.SphereGeometry(crownR, 12, 10),
+        crownColor
+    );
+    crown.position.y = trunkH + crownR * 0.65;
+    crown.scale.set(1.0, 0.85, 1.0);
+    crown.castShadow = true;
+    tree.add(crown);
+
+    tree.position.set(x, 0, z);
+    return tree;
+}
+
+// 2 cherries (ø 3m krona) — väster om pool B, längs hedge
+treesGroup.add(makeTree(M.cherry, 1.5, 5.0, -9,  7));     // SW garden, söder om pool B
+treesGroup.add(makeTree(M.cherry, 1.5, 5.0, -9, 10));     // SW garden, längre söder
+// 2 apples (ø 3m krona, ~4m hög) — placerade så de inte krockar med bastu/pool/altan
+treesGroup.add(makeTree(M.apple, 1.5, 4.0, -2,    5));    // söder om altan, ej i bastu/pool
+treesGroup.add(makeTree(M.apple, 1.5, 4.0,  8,   12));    // NÖ-hörn, mellan hedge och hus
+
+scene.add(treesGroup);
+
+// === PLAY AREA: Climbing frame + slide ===
+const playGroup = new THREE.Group();
+
+// Frame (2×3m footprint, 2m tall)
+const FRAME_W = 2, FRAME_D = 3, FRAME_H = 2;
+// Vertical posts at 4 corners
+[ [-FRAME_W/2, -FRAME_D/2], [FRAME_W/2, -FRAME_D/2],
+  [-FRAME_W/2, FRAME_D/2], [FRAME_W/2, FRAME_D/2] ].forEach(([dx, dz]) => {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, FRAME_H, 0.12), M.play);
+    post.position.set(dx, FRAME_H/2, dz);
+    post.castShadow = true;
+    playGroup.add(post);
+});
+// Top platform
+const platform = new THREE.Mesh(new THREE.BoxGeometry(FRAME_W, 0.08, 1.5), M.play);
+platform.position.set(0, FRAME_H - 0.5, FRAME_D/2 - 0.75);
+platform.castShadow = true;
+playGroup.add(platform);
+// Roof over platform
+const playRoof = new THREE.Mesh(new THREE.BoxGeometry(FRAME_W + 0.2, 0.1, 1.7), M.slide);
+playRoof.position.set(0, FRAME_H + 0.2, FRAME_D/2 - 0.75);
+playRoof.castShadow = true;
+playGroup.add(playRoof);
+// Slide (sloped box from platform extending out)
+const slideShape = new THREE.Shape();
+slideShape.moveTo(0, 0);
+slideShape.lineTo(2.5, 0);
+slideShape.lineTo(2.5, 0.4);
+slideShape.lineTo(0.3, 0.4 + 1.2);
+slideShape.lineTo(0, 0.4 + 1.2);
+slideShape.lineTo(0, 0);
+const slideGeom = new THREE.ExtrudeGeometry(slideShape, { depth: 0.5, bevelEnabled: false });
+const slide = new THREE.Mesh(slideGeom, M.slide);
+slide.position.set(-1, 0, -FRAME_D/2 - 2);
+slide.rotation.y = Math.PI / 2;
+slide.castShadow = true;
+playGroup.add(slide);
+// Ladder rungs
+for (let i = 0.3; i < FRAME_H; i += 0.4) {
+    const rung = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, FRAME_W - 0.1), M.play);
+    rung.position.set(-FRAME_W/2 - 0.05, i, FRAME_D/2 - 0.7);
+    playGroup.add(rung);
+}
+
+playGroup.position.set(5, 0, 12);    // NÖ bakre trädgården — ej i pool A/B/E
+scene.add(playGroup);
+
+// === TRAMPOLINE ===
+const trampGroup = new THREE.Group();
+const trampFrame = new THREE.Mesh(
+    new THREE.CylinderGeometry(TRAMP_R, TRAMP_R, 0.1, 32),
+    M.trampFr
+);
+trampFrame.position.y = TRAMP_H;
+trampFrame.castShadow = true;
+trampGroup.add(trampFrame);
+const trampMat = new THREE.Mesh(
+    new THREE.CylinderGeometry(TRAMP_R - 0.18, TRAMP_R - 0.18, 0.04, 32),
+    M.trampMat
+);
+trampMat.position.y = TRAMP_H + 0.04;
+trampGroup.add(trampMat);
+// Legs
+for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, TRAMP_H), M.trampFr);
+    leg.position.set(Math.cos(angle) * (TRAMP_R - 0.05), TRAMP_H/2, Math.sin(angle) * (TRAMP_R - 0.05));
+    leg.rotation.z = Math.cos(angle) * 0.2;
+    leg.rotation.x = Math.sin(angle) * 0.2;
+    trampGroup.add(leg);
+}
+// Safety net poles (tall thin)
+for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.8), M.trampFr);
+    pole.position.set(Math.cos(angle) * TRAMP_R, TRAMP_H + 0.9, Math.sin(angle) * TRAMP_R);
+    trampGroup.add(pole);
+}
+trampGroup.position.set(-3, 0, 14);   // central back, ej i häck eller bastu/körsbär
+scene.add(trampGroup);
+
+// =========================================================================
+// POOL BUILDER — parametrized so we can build 4×8 or 8×4 etc.
+// =========================================================================
+const COPING_W = 0.4;
+const POOL_GAP = 0.4;
+
+function buildPoolGroup(pW, pD) {
+    pW = pW || POOL_W;   // default 4
+    pD = pD || POOL_D;   // default 8
+    const longSide = Math.max(pW, pD);
+    const shortSide = Math.min(pW, pD);
+
+    const grp = new THREE.Group();
+
+    // Coping built as 4 strips
+    function addCoping(w, d, x, z) {
+        const c = new THREE.Mesh(new THREE.BoxGeometry(w, 0.15, d), M.poolEdge);
+        c.position.set(x, 0.075, z);
+        c.castShadow = true;
+        c.receiveShadow = true;
+        grp.add(c);
+    }
+    addCoping(pW + COPING_W*2, COPING_W, 0, -pD/2 - COPING_W/2);
+    addCoping(pW + COPING_W*2, COPING_W, 0,  pD/2 + COPING_W/2);
+    addCoping(COPING_W, pD, -pW/2 - COPING_W/2, 0);
+    addCoping(COPING_W, pD,  pW/2 + COPING_W/2, 0);
+
+    // Pool walls
+    const poolWallMat = new THREE.MeshStandardMaterial({ color: 0xeae3cf, roughness: 0.85 });
+    const wallH = POOL_DEPTH;
+    [ [pW/2 - 0.04, 0, 0, 0.08, wallH, pD],
+      [-pW/2 + 0.04, 0, 0, 0.08, wallH, pD],
+      [0, 0,  pD/2 - 0.04, pW, wallH, 0.08],
+      [0, 0, -pD/2 + 0.04, pW, wallH, 0.08] ].forEach(([x, _y, z, w, h, d]) => {
+        const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), poolWallMat);
+        wall.position.set(x, -h/2 + 0.10, z);
+        grp.add(wall);
+    });
+
+    // Pool floor
+    const poolFloor = new THREE.Mesh(
+        new THREE.BoxGeometry(pW, 0.06, pD),
+        poolWallMat
+    );
+    poolFloor.position.y = -POOL_DEPTH + 0.10;
+    grp.add(poolFloor);
+
+    // Water
+    const water = new THREE.Mesh(
+        new THREE.BoxGeometry(pW - 0.05, POOL_DEPTH - 0.05, pD - 0.05),
+        M.pool
+    );
+    water.position.y = -(POOL_DEPTH - 0.05)/2 + 0.13;
+    grp.add(water);
+
+    // Ripple lines (along long axis)
+    const rippleMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
+    if (pD >= pW) {
+        for (let r = -pD/2 + 1; r < pD/2 - 0.5; r += 1.6) {
+            const pts = [new THREE.Vector3(-pW/2 + 0.3, 0.135, r),
+                         new THREE.Vector3( pW/2 - 0.3, 0.135, r)];
+            grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), rippleMat));
+        }
+    } else {
+        for (let c = -pW/2 + 1; c < pW/2 - 0.5; c += 1.6) {
+            const pts = [new THREE.Vector3(c, 0.135, -pD/2 + 0.3),
+                         new THREE.Vector3(c, 0.135,  pD/2 - 0.3)];
+            grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), rippleMat));
+        }
+    }
+
+    // Sun loungers — på poolens längsta sida, motsatt huset
+    const loungerMat = new THREE.MeshStandardMaterial({ color: 0x8a6038 });
+    if (pD >= pW) {
+        // Pool is taller than wide → loungers on +z (south) short end
+        [-1.2, 1.2].forEach(dx => {
+            const l = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.12, 1.9), loungerMat);
+            l.position.set(dx, 0.22, -pD/2 - 1.5);
+            l.castShadow = true;
+            grp.add(l);
+            const back = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.05, 0.8), loungerMat);
+            back.position.set(dx, 0.55, -pD/2 - 0.85);
+            back.rotation.x = -Math.PI / 6;
+            back.castShadow = true;
+            grp.add(back);
+        });
+    } else {
+        // Pool wider than deep → loungers on south long side
+        [-2.5, -0.8, 0.8, 2.5].forEach(dx => {
+            const l = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.12, 0.7), loungerMat);
+            l.position.set(dx, 0.22, pD/2 + 1.2);
+            l.castShadow = true;
+            grp.add(l);
+        });
+    }
+
+    return grp;
+}
+
+// VARIANT A — pool i söder, KORTSIDAN mot huset (4m kort, 8m djupt söderut)
+const poolGroup = buildPoolGroup();   // 4 × 8 (default)
+poolGroup.position.set(
+    HOUSE_X - 1,
+    0,
+    HOUSE_Z + HOUSE_D/2 + DECK_W + POOL_GAP + POOL_D/2
+);
+scene.add(poolGroup);
+
+// VARIANT B — pool längs husets SV-långsida (parallellt med huset)
+const poolGroupC = buildPoolGroup();   // 4 × 8
+poolGroupC.position.set(-6.5, 0, 2.7);  // 2 m från carportens SE-gavel
+poolGroupC.visible = false;
+scene.add(poolGroupC);
+
+// =========================================================================
+// VARIANT E — pool i söder, LÅNGSIDAN mot huset (8m bred, 4m djupt)
+// Sammanhängande premium-altan runt hela poolen + parasoller + planteringar
+// =========================================================================
+const POOL_E_X = HOUSE_X;
+const POOL_E_Z = HOUSE_Z + HOUSE_D/2 + DECK_W + 1.0 + 4/2;  // 1m gap from south deck
+
+const POOL_E_X_MIN = POOL_E_X - 4;
+const POOL_E_X_MAX = POOL_E_X + 4;
+const POOL_E_Z_MIN = POOL_E_Z - 2;
+const POOL_E_Z_MAX = POOL_E_Z + 2;
+
+// Premium altan-ram: flush runt poolen, generös sol-/uteplats i söder
+const DECK_E_X_MIN = -3.84;                   // ansluter till SV-altan
+const DECK_E_X_MAX = 8.6;                     // smal kant öster om pool
+const DECK_E_Z_MIN = HOUSE_Z + HOUSE_D/2 + DECK_W;  // = 4.33 (mot SE-altan, ingen lucka)
+const DECK_E_Z_MAX = 13.5;                    // generös solterass söderut
+
+const deckEGroup = new THREE.Group();
+
+function addDeckPiece(xMin, xMax, zMin, zMax) {
+    const w = xMax - xMin;
+    const d = zMax - zMin;
+    if (w <= 0 || d <= 0) return;
+    const m = new THREE.Mesh(
+        new THREE.BoxGeometry(w, DECK_H, d),
+        M.deck
+    );
+    m.position.set((xMin + xMax)/2, DECK_H/2, (zMin + zMax)/2);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    deckEGroup.add(m);
+}
+// 4 strips runt poolen — flush, inga gap
+addDeckPiece(DECK_E_X_MIN, DECK_E_X_MAX, DECK_E_Z_MIN, POOL_E_Z_MIN);   // N (mellan SE-altan och pool)
+addDeckPiece(DECK_E_X_MIN, DECK_E_X_MAX, POOL_E_Z_MAX, DECK_E_Z_MAX);   // S (sol-/lounge-zon)
+addDeckPiece(DECK_E_X_MIN, POOL_E_X_MIN, POOL_E_Z_MIN, POOL_E_Z_MAX);   // V (väster om pool)
+addDeckPiece(POOL_E_X_MAX, DECK_E_X_MAX, POOL_E_Z_MIN, POOL_E_Z_MAX);   // Ö (smal kant)
+
+// Plank-linjer på altanen för textur (varje 0.5 m)
+const plankLineMat = new THREE.MeshStandardMaterial({ color: 0x8a6038, roughness: 0.9 });
+for (let z = DECK_E_Z_MIN + 0.5; z < DECK_E_Z_MAX; z += 0.5) {
+    // Skip om plank skär över poolen
+    if (z > POOL_E_Z_MIN && z < POOL_E_Z_MAX) continue;
+    const line = new THREE.Mesh(
+        new THREE.BoxGeometry(DECK_E_X_MAX - DECK_E_X_MIN - 0.1, 0.005, 0.04),
+        plankLineMat
+    );
+    line.position.set((DECK_E_X_MIN + DECK_E_X_MAX)/2, DECK_H + 0.003, z);
+    deckEGroup.add(line);
+}
+
+// 2 parasoller på sol-zonen söder om poolen
+function addParasol(x, z) {
+    // Stång
+    const pole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.04, 0.04, 2.4),
+        new THREE.MeshStandardMaterial({ color: 0x222222 })
+    );
+    pole.position.set(x, 1.2 + DECK_H, z);
+    pole.castShadow = true;
+    deckEGroup.add(pole);
+    // Skärm (cone, upp och ner)
+    const canopy = new THREE.Mesh(
+        new THREE.ConeGeometry(1.2, 0.4, 16),
+        new THREE.MeshStandardMaterial({ color: 0xc4a878, roughness: 0.85, side: THREE.DoubleSide })
+    );
+    canopy.position.set(x, 2.4 + DECK_H, z);
+    canopy.castShadow = true;
+    deckEGroup.add(canopy);
+    // Skärmens centrum-rib
+    const rib = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.03, 0.03, 0.3),
+        new THREE.MeshStandardMaterial({ color: 0x222222 })
+    );
+    rib.position.set(x, 2.55 + DECK_H, z);
+    deckEGroup.add(rib);
+}
+addParasol(0.2, 11.5);
+addParasol(6.3, 11.5);
+
+// Planteringskärl (med små buskar) i hörnen för att rama in
+function addPlanter(x, z) {
+    const box = new THREE.Mesh(
+        new THREE.BoxGeometry(0.7, 0.6, 0.7),
+        new THREE.MeshStandardMaterial({ color: 0x3a2818, roughness: 0.9 })
+    );
+    box.position.set(x, 0.3 + DECK_H, z);
+    box.castShadow = true;
+    deckEGroup.add(box);
+    const bush = new THREE.Mesh(
+        new THREE.SphereGeometry(0.45, 10, 8),
+        new THREE.MeshStandardMaterial({ color: 0x4a7045, roughness: 1.0 })
+    );
+    bush.position.set(x, 0.95 + DECK_H, z);
+    bush.castShadow = true;
+    deckEGroup.add(bush);
+}
+addPlanter(DECK_E_X_MIN + 0.5, DECK_E_Z_MAX - 0.5);    // SV-hörn
+addPlanter(DECK_E_X_MAX - 0.5, DECK_E_Z_MAX - 0.5);    // SÖ-hörn
+addPlanter(DECK_E_X_MIN + 0.5, DECK_E_Z_MIN + 0.5);    // NV-hörn (mot huset)
+
+deckEGroup.visible = false;
+scene.add(deckEGroup);
+
+const poolGroupE = buildPoolGroup(8, 4);
+poolGroupE.position.set(POOL_E_X, 0, POOL_E_Z);
+poolGroupE.visible = false;
+scene.add(poolGroupE);
+
+// =========================================================================
+// VARIANT D — Bara fin trädgård: pergola + eldstad + extra plantering
+// All positions are world coords (gardenDGroup stays at origin)
+// =========================================================================
+const gardenDGroup = new THREE.Group();
+const woodMat = new THREE.MeshStandardMaterial({ color: 0xa07650, roughness: 0.85 });
+
+// --- Pergola (4 × 3 m × 2,5 m hög) — central-öster i bakre trädgården ---
+const PERG_X = 2, PERG_Z = 11;        // world position
+const PERG_W = 4, PERG_D = 3, PERG_H = 2.5;
+[ [-PERG_W/2, -PERG_D/2], [PERG_W/2, -PERG_D/2],
+  [-PERG_W/2, PERG_D/2], [PERG_W/2, PERG_D/2] ].forEach(([dx, dz]) => {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.15, PERG_H, 0.15), woodMat);
+    post.position.set(PERG_X + dx, PERG_H/2, PERG_Z + dz);
+    post.castShadow = true;
+    gardenDGroup.add(post);
+});
+[-PERG_D/2, PERG_D/2].forEach(dz => {
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(PERG_W + 0.4, 0.12, 0.15), woodMat);
+    beam.position.set(PERG_X, PERG_H, PERG_Z + dz);
+    beam.castShadow = true;
+    gardenDGroup.add(beam);
+});
+for (let i = 0; i <= 6; i++) {
+    const dx = -PERG_W/2 + (i / 6) * PERG_W;
+    const slat = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, PERG_D + 0.4), woodMat);
+    slat.position.set(PERG_X + dx, PERG_H + 0.1, PERG_Z);
+    slat.castShadow = true;
+    gardenDGroup.add(slat);
+}
+// Sittgrupp under pergolan
+const tableD = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.05, 1.4), woodMat);
+tableD.position.set(PERG_X, 0.72, PERG_Z);
+tableD.castShadow = true;
+gardenDGroup.add(tableD);
+for (const [dx, dz] of [[-0.95, -0.95], [0.95, -0.95], [-0.95, 0.95], [0.95, 0.95]]) {
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.05, 0.45), woodMat);
+    seat.position.set(PERG_X + dx, 0.46, PERG_Z + dz);
+    seat.castShadow = true;
+    gardenDGroup.add(seat);
+}
+
+// --- Eldstad (world (-3, 8)) ---
+const FIRE_X = -3, FIRE_Z = 8;
+const stoneMat = new THREE.MeshStandardMaterial({ color: 0x6a605a, roughness: 0.95 });
+const fireRing = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.18, 8, 24), stoneMat);
+fireRing.rotation.x = Math.PI / 2;
+fireRing.position.set(FIRE_X, 0.18, FIRE_Z);
+fireRing.castShadow = true;
+gardenDGroup.add(fireRing);
+const flameMat = new THREE.MeshStandardMaterial({
+    color: 0xff8030, emissive: 0xff5010, emissiveIntensity: 0.7
+});
+const flame = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.65, 8), flameMat);
+flame.position.set(FIRE_X, 0.5, FIRE_Z);
+gardenDGroup.add(flame);
+const logMat = new THREE.MeshStandardMaterial({ color: 0x6a4828, roughness: 0.95 });
+for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
+    const log = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.1), logMat);
+    log.position.set(FIRE_X + Math.cos(a) * 1.7, 0.35, FIRE_Z + Math.sin(a) * 1.7);
+    log.rotation.z = Math.PI / 2;
+    log.rotation.y = a;
+    log.castShadow = true;
+    gardenDGroup.add(log);
+}
+
+// --- Tre perennialbäddar (rosa, gul, lila) ---
+const flowerBedMat = new THREE.MeshStandardMaterial({ color: 0x6a4828, roughness: 0.9 });
+const flowerColors = [0xe898a0, 0xe0d050, 0xc090d0];
+[ [-3, 4], [5, 6], [-1, 14] ].forEach(([bx, bz], idx) => {
+    const bed = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.25, 0.8), flowerBedMat);
+    bed.position.set(bx, 0.125, bz);
+    bed.castShadow = true;
+    bed.receiveShadow = true;
+    gardenDGroup.add(bed);
+    const flowerMat = new THREE.MeshStandardMaterial({
+        color: flowerColors[idx], emissive: flowerColors[idx], emissiveIntensity: 0.15
+    });
+    for (let dx = -1; dx <= 1; dx += 0.4) {
+        for (let dz = -0.3; dz <= 0.3; dz += 0.3) {
+            const bloom = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), flowerMat);
+            bloom.position.set(bx + dx, 0.4, bz + dz);
+            gardenDGroup.add(bloom);
+        }
+    }
+});
+
+gardenDGroup.visible = false;
+scene.add(gardenDGroup);
+
+// =========================================================================
+// VARIANT B: HOT TUB + SAUNA
+// =========================================================================
+const spaGroup = new THREE.Group();
+
+// Hot tub (cylinder) on a small wooden platform attached to deck SE end
+const hotTubBase = new THREE.Mesh(
+    new THREE.BoxGeometry(2.6, 0.16, 2.6),
+    M.deck
+);
+hotTubBase.position.y = 0.08;
+hotTubBase.castShadow = true;
+hotTubBase.receiveShadow = true;
+spaGroup.add(hotTubBase);
+
+// Hot tub trä-tunna (ÖPPEN i toppen så vattnet syns uppifrån)
+const tubOuter = new THREE.Mesh(
+    new THREE.CylinderGeometry(HOTTUB_R, HOTTUB_R, HOTTUB_H, 24, 1, true), // openEnded=true
+    M.hottub
+);
+tubOuter.position.y = HOTTUB_H/2 + 0.16;
+tubOuter.castShadow = true;
+spaGroup.add(tubOuter);
+
+// Trä-rim runt toppen (ramen)
+const tubRim = new THREE.Mesh(
+    new THREE.TorusGeometry(HOTTUB_R - 0.05, 0.07, 6, 24),
+    M.hottub
+);
+tubRim.rotation.x = Math.PI / 2;
+tubRim.position.y = HOTTUB_H + 0.16;
+spaGroup.add(tubRim);
+
+// Inre tunnvägg (mörk botten/sida — så det inte syns "genom" tunnan)
+const tubInner = new THREE.Mesh(
+    new THREE.CylinderGeometry(HOTTUB_R - 0.06, HOTTUB_R - 0.06, HOTTUB_H - 0.05, 24, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0x2a1810, side: THREE.DoubleSide })
+);
+tubInner.position.y = HOTTUB_H/2 + 0.18;
+spaGroup.add(tubInner);
+
+// VATTEN — fyller nästan hela tunnan, ljust blått (samma färg som poolen)
+const tubWater = new THREE.Mesh(
+    new THREE.CylinderGeometry(HOTTUB_R - 0.07, HOTTUB_R - 0.07, HOTTUB_H - 0.15, 24),
+    M.hottubH2O
+);
+tubWater.position.y = HOTTUB_H/2 + 0.20;
+spaGroup.add(tubWater);
+
+// Ångpuffar ovanför vattnet (visar att det är varmt)
+const steamMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff, transparent: true, opacity: 0.45,
+    emissive: 0xffffff, emissiveIntensity: 0.15
+});
+[ [-0.2, 0.1], [0.15, 0.2], [0.25, -0.1], [-0.1, -0.2] ].forEach(([dx, dz]) => {
+    const steam = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), steamMat);
+    steam.position.set(dx, HOTTUB_H + 0.55, dz);
+    spaGroup.add(steam);
+});
+
+// Sauna (separate building near SE corner)
+const saunaSubGroup = new THREE.Group();
+const saunaBody = new THREE.Mesh(
+    new THREE.BoxGeometry(SAUNA_W, SAUNA_H, SAUNA_D),
+    M.sauna
+);
+saunaBody.position.y = SAUNA_H/2;
+saunaBody.castShadow = true;
+saunaBody.receiveShadow = true;
+saunaSubGroup.add(saunaBody);
+
+// Sauna gable roof
+const saunaRoofShape = new THREE.Shape();
+saunaRoofShape.moveTo(-SAUNA_W/2 - 0.15, 0);
+saunaRoofShape.lineTo(SAUNA_W/2 + 0.15, 0);
+saunaRoofShape.lineTo(0, SAUNA_RIDGE);
+saunaRoofShape.lineTo(-SAUNA_W/2 - 0.15, 0);
+const saunaRoof = new THREE.Mesh(
+    new THREE.ExtrudeGeometry(saunaRoofShape, { depth: SAUNA_D + 0.3, bevelEnabled: false }),
+    M.roof
+);
+saunaRoof.position.set(0, SAUNA_H, -SAUNA_D/2 - 0.15);
+saunaRoof.castShadow = true;
+saunaSubGroup.add(saunaRoof);
+
+// Sauna door
+const saunaDoor = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.9, 0.06), M.door);
+saunaDoor.position.set(0, 0.95, -SAUNA_D/2 - 0.03);
+saunaSubGroup.add(saunaDoor);
+
+// Small window
+const saunaWin = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.06),
+    new THREE.MeshStandardMaterial({ color: 0xffd870, emissive: 0xff9020, emissiveIntensity: 0.4 }));
+saunaWin.position.set(SAUNA_W/2 + 0.03, 1.7, 0);
+saunaSubGroup.add(saunaWin);
+
+saunaSubGroup.position.set(8, 0, 13);
+spaGroup.add(saunaSubGroup);
+
+// Stone path between hot tub and sauna
+const stonePathMat = new THREE.MeshStandardMaterial({ color: 0xd0c8b0, roughness: 1.0 });
+const startX = HOUSE_X - HOUSE_W/2 - DECK_W/2;
+const startZ = HOUSE_Z + HOUSE_D/2 + 1.5;
+const endX = 8;
+const endZ = 13 - SAUNA_D/2 - 0.5;
+const stoneCount = 8;
+for (let i = 0; i < stoneCount; i++) {
+    const t = i / (stoneCount - 1);
+    const stone = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.45), stonePathMat);
+    stone.position.set(
+        startX + (endX - startX) * t,
+        0.025,
+        startZ + (endZ - startZ) * t
+    );
+    stone.rotation.y = Math.atan2(endZ - startZ, endX - startX);
+    stone.receiveShadow = true;
+    spaGroup.add(stone);
+}
+
+// Position spaGroup at SE end of SV-deck
+spaGroup.position.set(HOUSE_X - HOUSE_W/2 - DECK_W/2, 0, HOUSE_Z + HOUSE_D/2 + 1.3);
+// (Hot tub sits at local origin, just south of the L-deck corner.)
+
+// Sauna goes to world (-3, 0, 9) — närmare hot tub, bort från studsmattan
+const SAUNA_WORLD_X = -3, SAUNA_WORLD_Z = 9;
+saunaSubGroup.position.set(
+    SAUNA_WORLD_X - (HOUSE_X - HOUSE_W/2 - DECK_W/2),
+    0,
+    SAUNA_WORLD_Z - (HOUSE_Z + HOUSE_D/2 + 1.3)
+);
+
+// Replace earlier (broken) stone path with proper local-coord stones
+spaGroup.children = spaGroup.children.filter(c => !c.userData?.stone);
+const _saunaLocal = saunaSubGroup.position;
+const _endX = _saunaLocal.x;
+const _endZ = _saunaLocal.z - SAUNA_D/2 - 0.5;
+for (let i = 1; i < stoneCount; i++) {
+    const t = i / (stoneCount - 1);
+    const stone = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.05, 0.4), stonePathMat);
+    stone.position.set(_endX * t, 0.025, _endZ * t);
+    stone.rotation.y = Math.atan2(_endZ, _endX);
+    stone.receiveShadow = true;
+    stone.userData.stone = true;
+    spaGroup.add(stone);
+}
+
+scene.add(spaGroup);
+spaGroup.visible = false; // start with pool variant active
+
+// === DIMENSION ANNOTATIONS (text sprites) ===
+function makeLabel(text, color = '#ffffff') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.fillStyle = color;
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 128, 32);
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(4, 1, 1);
+    return sprite;
+}
+
+const houseLabel = makeLabel('Hus  7,73 × 12,83 m');
+houseLabel.position.set(HOUSE_X, HOUSE_H + HOUSE_RIDGE_RISE + 1.5, HOUSE_Z);
+scene.add(houseLabel);
+
+const carportLabel = makeLabel('Carport  3,94 × 8,69 m');
+carportLabel.position.set(CARPORT_X, CARPORT_H + CARPORT_RIDGE + 1, CARPORT_Z);
+scene.add(carportLabel);
+
+const roadLabel = makeLabel('Kopparmossvägen', '#ffe080');
+roadLabel.position.set(0, 0.5, -PLOT_D/2 - 3.5);
+scene.add(roadLabel);
+
+const compassN = makeLabel('NV  ↑ road', '#ffd060');
+compassN.position.set(0, 0.5, -PLOT_D/2 + 0.5);
+scene.add(compassN);
+
+// Variant labels (toggleable)
+const poolLabel = makeLabel('Pool 4 × 8 m', '#7fd8ff');
+poolLabel.position.set(
+    HOUSE_X - 1,
+    1.5,
+    HOUSE_Z + HOUSE_D/2 + DECK_W + POOL_GAP + POOL_D/2
+);
+scene.add(poolLabel);
+
+const spaLabel = makeLabel('Spa ø 2 m', '#ffaa70');
+spaLabel.position.set(
+    HOUSE_X - HOUSE_W/2 - DECK_W/2,
+    2.0,
+    HOUSE_Z + HOUSE_D/2 + 1.5 + 1.3
+);
+spaLabel.visible = false;
+scene.add(spaLabel);
+
+const saunaLabel = makeLabel('Bastu 2 × 3 m', '#ffaa70');
+saunaLabel.position.set(-3, 3.2, 9);
+saunaLabel.visible = false;
+scene.add(saunaLabel);
+
+const poolLabelC = makeLabel('Pool 4 × 8 m', '#7fd8ff');
+poolLabelC.position.set(-6.5, 1.5, 2.7);
+poolLabelC.visible = false;
+scene.add(poolLabelC);
+
+const poolLabelE = makeLabel('Pool 8 × 4 m (långsida)', '#7fd8ff');
+poolLabelE.position.set(POOL_E_X, 1.5, POOL_E_Z);
+poolLabelE.visible = false;
+scene.add(poolLabelE);
+
+// === UI HANDLERS ===
+function setVariant(v) {
+    poolGroup.visible    = v === 'pool';
+    spaGroup.visible     = v === 'spa';
+    poolGroupC.visible   = v === 'poolC';
+    poolGroupE.visible   = v === 'poolE';
+    deckEGroup.visible   = v === 'poolE';
+    gardenDGroup.visible = v === 'garden';
+
+    poolLabel.visible  = v === 'pool';
+    spaLabel.visible   = v === 'spa';
+    saunaLabel.visible = v === 'spa';
+    poolLabelC.visible = v === 'poolC';
+    poolLabelE.visible = v === 'poolE';
+
+    document.getElementById('btn-pool').classList.toggle('active',   v === 'pool');
+    document.getElementById('btn-spa').classList.toggle('active',    v === 'spa');
+    document.getElementById('btn-pool-c').classList.toggle('active', v === 'poolC');
+    document.getElementById('btn-pool-e').classList.toggle('active', v === 'poolE');
+    document.getElementById('btn-garden').classList.toggle('active', v === 'garden');
+}
+document.getElementById('btn-pool').addEventListener('click',   () => setVariant('pool'));
+document.getElementById('btn-spa').addEventListener('click',    () => setVariant('spa'));
+document.getElementById('btn-pool-c').addEventListener('click', () => setVariant('poolC'));
+document.getElementById('btn-pool-e').addEventListener('click', () => setVariant('poolE'));
+document.getElementById('btn-garden').addEventListener('click', () => setVariant('garden'));
+
+// Camera modes
+function setCamera(mode) {
+    document.querySelectorAll('[data-camera]').forEach(b =>
+        b.classList.toggle('active', b.dataset.camera === mode)
+    );
+    if (mode === 'top') {
+        camera.position.set(0, 50, 0.01);
+        controls.target.set(0, 0, 0);
+    } else if (mode === 'iso') {
+        camera.position.set(26, 26, 26);
+        controls.target.set(0, 1, 0);
+    } else {
+        camera.position.set(24, 14, 28);
+        controls.target.set(0, 1, 0);
+    }
+    controls.update();
+}
+document.querySelectorAll('[data-camera]').forEach(btn => {
+    btn.addEventListener('click', () => setCamera(btn.dataset.camera));
+});
+
+// Toggle visibility
+const toggles = {
+    roof: () => {
+        const v = !houseRoof.visible;
+        houseRoof.visible = v;
+        carportRoof.visible = v;
+        chimney.visible = v;
+        document.getElementById('btn-roof').textContent = `Tak: ${v ? 'PÅ' : 'AV'}`;
+        document.getElementById('btn-roof').classList.toggle('active', v);
+    },
+    trees: () => {
+        const v = !treesGroup.visible;
+        treesGroup.visible = v;
+        document.getElementById('btn-trees').textContent = `Träd: ${v ? 'PÅ' : 'AV'}`;
+        document.getElementById('btn-trees').classList.toggle('active', v);
+    },
+    grid: () => {
+        const v = !gridGroup.visible;
+        gridGroup.visible = v;
+        document.getElementById('btn-grid').textContent = `1 m-rutnät: ${v ? 'PÅ' : 'AV'}`;
+        document.getElementById('btn-grid').classList.toggle('active', v);
+    }
+};
+document.querySelectorAll('[data-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => toggles[btn.dataset.toggle]());
+});
+
+// Compass updates with camera
+const compassRotator = document.getElementById('compass-rotator');
+function updateCompass() {
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    // Camera forward direction projected onto XZ
+    const angle = Math.atan2(dir.x, dir.z) * 180 / Math.PI;
+    // Our N is -Z direction in 3D (since road is at -Z)
+    // When camera looks toward -Z, it sees N at top of screen, so compass should show N up (no rotation)
+    // angle when looking at -Z: atan2(0, -1) = 180°
+    // So rotate compass by (180 - angle) to align
+    compassRotator.setAttribute('transform', `rotate(${-(angle - 180)})`);
+}
+
+// === RESIZE HANDLER ===
+window.addEventListener('resize', () => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const a = w / h;
+    camera.aspect = a;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+});
+
+// === ANIMATION LOOP ===
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    updateCompass();
+    renderer.render(scene, camera);
+}
+
+document.getElementById('loading').style.display = 'none';
+animate();
+
+</script>
+</body>
+</html>

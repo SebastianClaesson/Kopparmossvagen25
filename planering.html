@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planering &amp; Tidslinje — Villa Lindbacken trädgård</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #f7f4ec;
+    color: #1a1a1a;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  header { border-bottom: 1px solid #999; padding-bottom: 8px; margin-bottom: 16px; }
+  h1 { font-size: 1.2rem; margin: 0 0 4px; font-weight: 700; }
+  .sub { font-size: 0.85rem; color: #555; }
+  .nav-links { margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .nav-links a {
+    color: #2d4a2b; text-decoration: none; font-size: 0.82rem;
+    padding: 4px 12px; border: 1px solid #2d4a2b; border-radius: 4px;
+  }
+  .nav-links a.active, .nav-links a:hover { background: #2d4a2b; color: white; }
+
+  h2 {
+    font-size: 1rem; margin: 24px 0 8px;
+    padding: 6px 12px; background: #2d4a2b; color: white; border-radius: 4px;
+  }
+
+  /* Gantt timeline */
+  .gantt {
+    background: white; border: 1px solid #ccc; border-radius: 6px;
+    padding: 14px; overflow-x: auto;
+  }
+  .gantt table {
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    min-width: 900px;
+    width: 100%;
+  }
+  .gantt th, .gantt td {
+    padding: 4px 6px;
+    border: 1px solid #e0e0e0;
+    vertical-align: middle;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .gantt thead th {
+    background: #ecf3e0; font-weight: 700; font-size: 0.72rem;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .gantt th.year-h {
+    background: #2d4a2b; color: white;
+    font-size: 0.75rem;
+  }
+  .gantt td.task-name {
+    text-align: left; white-space: normal;
+    background: #fafaf3; font-weight: 600; min-width: 180px;
+  }
+  .gantt td.bar { padding: 0; height: 22px; }
+  .gantt .bar-fill {
+    display: block; height: 100%; min-height: 22px;
+    border-radius: 3px;
+  }
+  .bar-prep      { background: #b8b3a2; }
+  .bar-anlagg    { background: #b07020; }
+  .bar-plantera  { background: #6a9a4a; }
+  .bar-pool      { background: #4a8aa8; }
+  .bar-extra     { background: #8a4a8a; }
+  .bar-underhall { background: #c4a060; }
+  .bar-flytt     { background: #d44a3a; }
+
+  .legend { margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-swatch {
+    width: 18px; height: 12px; border-radius: 3px;
+    display: inline-block;
+  }
+
+  .phase-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px; margin: 14px 0;
+  }
+  .phase-card {
+    background: white; border: 1px solid #ccc; border-radius: 6px; padding: 14px;
+  }
+  .phase-card h3 {
+    margin: 0 0 6px; font-size: 0.92rem; color: #2d4a2b;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .phase-period {
+    font-size: 0.74rem; color: #888; margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .phase-card ul { margin: 4px 0; padding-left: 18px; font-size: 0.84rem; }
+
+  .tip {
+    background: #fef3e6; border: 1px solid #b07020; padding: 10px 14px;
+    border-radius: 4px; font-size: 0.85rem; color: #6a3010; margin: 12px 0;
+  }
+  .tip strong { color: #6a2010; }
+
+  .marker-rot {
+    background: #f0e4f0; border-left: 4px solid #8a4a8a; padding: 8px 12px;
+    margin: 10px 0; font-size: 0.85rem;
+  }
+
+  .month-summary table {
+    width: 100%; border-collapse: collapse; font-size: 0.82rem; margin: 8px 0;
+  }
+  .month-summary td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+  .month-summary td.month { font-weight: 700; color: #2d4a2b; width: 200px; }
+
+  .footnote { font-size: 0.78rem; color: #888; margin-top: 24px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>PLANERING &amp; TIDSLINJE</h1>
+    <div class="sub">Trädgård · Vaksala-Lunda 39:4 · Inflyttning december 2026</div>
+    <div class="nav-links">
+      <a href="index.html">2D-skiss</a>
+      <a href="3d.html">3D-vy</a>
+      <a href="priser.html">Prislista</a>
+      <a href="planering.html" class="active">Planering</a>
+    </div>
+  </header>
+
+  <div class="tip">
+    <strong>Översikt:</strong> Trädgården kan inte anläggas året runt i Uppsala-klimatet.
+    Varje moment har sin <em>rätta säsong</em>. Planera bakåt från en användbar trädgård sommaren 2027 → börja kontakta entreprenörer redan vintern 2026/27.
+  </div>
+
+  <h2>Övergripande tidslinje (kvartal)</h2>
+
+  <div class="gantt">
+    <table>
+      <thead>
+        <tr>
+          <th rowspan="2">Aktivitet</th>
+          <th colspan="2" class="year-h">2026</th>
+          <th colspan="4" class="year-h">2027</th>
+          <th colspan="4" class="year-h">2028</th>
+          <th colspan="4" class="year-h">2029-2031</th>
+          <th colspan="2" class="year-h">2031+</th>
+        </tr>
+        <tr>
+          <th>Q3</th><th>Q4</th>
+          <th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th>
+          <th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th>
+          <th>'29</th><th>'30</th><th>'31 Q1</th><th>'31 Q2</th>
+          <th>Q3</th><th>Q4</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="task-name">Husbygge / inflyttning</td>
+          <td class="bar"><span class="bar-fill bar-prep"></span></td>
+          <td class="bar"><span class="bar-fill bar-flytt" title="Inflyttning december 2026"></span></td>
+          <td colspan="14"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Planering &amp; offerthämtning</td>
+          <td colspan="2"></td>
+          <td class="bar"><span class="bar-fill bar-prep"></span></td>
+          <td colspan="13"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Markarbete / dränering</td>
+          <td colspan="3"></td>
+          <td class="bar"><span class="bar-fill bar-anlagg"></span></td>
+          <td colspan="12"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Pool/spa-grävning (om A/B/C/E)</td>
+          <td colspan="3"></td>
+          <td class="bar"><span class="bar-fill bar-pool"></span></td>
+          <td class="bar"><span class="bar-fill bar-pool"></span></td>
+          <td colspan="11"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Altan / trall (L-form)</td>
+          <td colspan="3"></td>
+          <td class="bar"><span class="bar-fill bar-anlagg"></span></td>
+          <td class="bar"><span class="bar-fill bar-anlagg"></span></td>
+          <td colspan="11"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Plantera häck (Thuja)</td>
+          <td colspan="3"></td>
+          <td class="bar"><span class="bar-fill bar-plantera"></span></td>
+          <td colspan="2"></td>
+          <td class="bar"><span class="bar-fill bar-plantera"></span></td>
+          <td colspan="9"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Plantera fruktträd</td>
+          <td colspan="3"></td>
+          <td class="bar"><span class="bar-fill bar-plantera"></span></td>
+          <td colspan="2"></td>
+          <td class="bar"><span class="bar-fill bar-plantera"></span></td>
+          <td colspan="9"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Gräsmatta (rulle / sådd)</td>
+          <td colspan="4"></td>
+          <td class="bar"><span class="bar-fill bar-plantera"></span></td>
+          <td class="bar"><span class="bar-fill bar-plantera"></span></td>
+          <td colspan="10"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Bastu / pergola / eldstad (D)</td>
+          <td colspan="3"></td>
+          <td class="bar"><span class="bar-fill bar-extra"></span></td>
+          <td class="bar"><span class="bar-fill bar-extra"></span></td>
+          <td colspan="11"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Lekutrustning</td>
+          <td colspan="5"></td>
+          <td class="bar"><span class="bar-fill bar-extra"></span></td>
+          <td colspan="10"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Perenner / detaljplantering</td>
+          <td colspan="5"></td>
+          <td class="bar"><span class="bar-fill bar-plantera"></span></td>
+          <td colspan="2"></td>
+          <td class="bar"><span class="bar-fill bar-plantera"></span></td>
+          <td colspan="8"></td>
+        </tr>
+        <tr>
+          <td class="task-name">Löpande underhåll</td>
+          <td colspan="6"></td>
+          <td colspan="4" class="bar"><span class="bar-fill bar-underhall"></span></td>
+          <td colspan="2" class="bar"><span class="bar-fill bar-underhall"></span></td>
+          <td colspan="2" class="bar"><span class="bar-fill bar-underhall"></span></td>
+          <td colspan="2" class="bar"><span class="bar-fill bar-underhall"></span></td>
+        </tr>
+        <tr>
+          <td class="task-name" style="color:#8a4a8a;">⭐ ROT-eligibel period</td>
+          <td colspan="14"></td>
+          <td colspan="2" class="bar"><span class="bar-fill" style="background:#8a4a8a;"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="legend-swatch bar-flytt"></span>Inflyttning</div>
+    <div class="legend-item"><span class="legend-swatch bar-prep"></span>Förberedelse</div>
+    <div class="legend-item"><span class="legend-swatch bar-anlagg"></span>Anläggning (mark/altan)</div>
+    <div class="legend-item"><span class="legend-swatch bar-pool"></span>Pool/spa</div>
+    <div class="legend-item"><span class="legend-swatch bar-plantera"></span>Plantering</div>
+    <div class="legend-item"><span class="legend-swatch bar-extra"></span>Extra (bastu/pergola/lek)</div>
+    <div class="legend-item"><span class="legend-swatch bar-underhall"></span>Underhåll</div>
+  </div>
+
+  <h2>Faser i detalj</h2>
+
+  <div class="phase-grid">
+    <div class="phase-card">
+      <h3>📋 Fas 1 — Inflyttning + planering</h3>
+      <div class="phase-period">December 2026 – Mars 2027</div>
+      <ul>
+        <li><strong>Dec 2026:</strong> Flytta in. Trädgården är "byggschakt-läge" — leror, traktorhjulspår, kanske tillfälligt grus.</li>
+        <li><strong>Jan 2027:</strong> Hämta in 2-3 offerter på markarbete + altan + ev. pool.</li>
+        <li><strong>Feb 2027:</strong> Beslut om variant (A/B/C/D/E) och budget.</li>
+        <li><strong>Mar 2027:</strong> Skriv kontrakt med entreprenör. Möte med trädgårdsarkitekt om idéskiss (10-25k kr).</li>
+      </ul>
+    </div>
+
+    <div class="phase-card">
+      <h3>🚧 Fas 2 — Hård landskap (markarbete + altan + pool)</h3>
+      <div class="phase-period">April – Juni 2027</div>
+      <ul>
+        <li><strong>April:</strong> Markarbete startar — schakta, dränera, justera nivåer. Pool-grävning om aktuellt.</li>
+        <li><strong>Maj:</strong> Pool-installation (4-8 veckor). Altan-balkverk + plank.</li>
+        <li><strong>Juni:</strong> Färdigställa altan. Asfaltering infart. Stenstigar.</li>
+      </ul>
+      <p style="font-size: 0.78rem; color: #888; margin: 4px 0 0;">
+        💡 Tunga maskiner kommer. Skydda hus och staket.
+      </p>
+    </div>
+
+    <div class="phase-card">
+      <h3>🌳 Fas 3 — Plantering (träd, häck)</h3>
+      <div class="phase-period">April – Maj 2027 / September – Oktober 2027</div>
+      <ul>
+        <li><strong>Vår:</strong> Plantera häck (Thuja Smaragd) — 60 m, 100-120 plantor à 50 cm-avstånd.</li>
+        <li><strong>Vår:</strong> Fruktträd (2 körsbär + 2 äpple). Använd 2-3 års pluggplantor för snabbare etablering.</li>
+        <li><strong>Höst:</strong> Komplettering om något inte tagit sig. Höst är faktiskt <em>bästa</em> tiden för häck.</li>
+      </ul>
+      <p style="font-size: 0.78rem; color: #888; margin: 4px 0 0;">
+        💡 Vänta inte med häcken — den behöver 2-3 år att bli ordentlig.
+      </p>
+    </div>
+
+    <div class="phase-card">
+      <h3>🌱 Fas 4 — Gräsmatta</h3>
+      <div class="phase-period">Maj – September 2027</div>
+      <ul>
+        <li><strong>Försäsong:</strong> Förbered jord, lägg matjord (10-15 cm), nivellera.</li>
+        <li><strong>Färdig rulle (rekommenderas):</strong> Lägg maj-juni, vattna 2-3 ggr/dag första 2 veckorna.</li>
+        <li><strong>Sådd (billigare):</strong> Aug-sep är bättre än vår, mindre konkurrens med ogräs.</li>
+        <li>Första klippning: när gräset är ~7-8 cm högt, klipp till ~5 cm.</li>
+      </ul>
+    </div>
+
+    <div class="phase-card">
+      <h3>🏖️ Fas 5 — Möblering &amp; lek</h3>
+      <div class="phase-period">Juli – September 2027</div>
+      <ul>
+        <li>Utemöbler levereras / monteras.</li>
+        <li>Klätterställning + rutschkana monteras (kontrollera fallunderlag).</li>
+        <li>Studsmatta (ni har redan).</li>
+        <li>Eventuell pergola, eldstad (Variant D) — kan göras parallellt.</li>
+      </ul>
+    </div>
+
+    <div class="phase-card">
+      <h3>🌸 Fas 6 — Detaljer &amp; perenner</h3>
+      <div class="phase-period">September 2027 – April 2028</div>
+      <ul>
+        <li><strong>Sep-Okt 2027:</strong> Plantera lökväxter (vårblommor) + perennialbäddar.</li>
+        <li><strong>Vinter 2027/28:</strong> Vila — observera sol/skugga, vindar, snöansamling.</li>
+        <li><strong>Vår 2028:</strong> Komplettera med växter där det blev luckor. Eventuellt utöka.</li>
+      </ul>
+    </div>
+
+    <div class="phase-card">
+      <h3>🛠️ Fas 7 — Löpande underhåll</h3>
+      <div class="phase-period">2027 och framåt</div>
+      <ul>
+        <li><strong>Vår:</strong> Beskärning, gödsling, häckklippning (förbi maj).</li>
+        <li><strong>Sommar:</strong> Klippning varje 7-10 dag. Bevattning vid torka.</li>
+        <li><strong>Höst:</strong> Lövplockning, vinterförbered pool/spa, häckklippning.</li>
+        <li><strong>Vinter:</strong> Snöskottning. Vinteruppehåll.</li>
+        <li><em>RUT-avdrag</em> 50% gäller på dessa tjänster.</li>
+      </ul>
+    </div>
+
+    <div class="phase-card">
+      <h3>⭐ Fas 8 — Tillbyggnader (ROT-eligibel period)</h3>
+      <div class="phase-period">Från sent 2031</div>
+      <ul>
+        <li>Huset blir 5 år gammalt → <strong>ROT-avdrag</strong> 30% blir tillgängligt.</li>
+        <li>Strategisk timing: spara större tillbyggnader (poolhus, takad terrass, friggebod) till efter detta datum.</li>
+        <li>Renoveringar och tillbyggnader på trädgården täcks.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Månads-checklist (höjdpunkter)</h2>
+
+  <div class="month-summary">
+    <table>
+      <tr><td class="month">Dec 2026</td><td>Flytt in. Acceptera "schakt-utseende" i trädgården. Fokus på inomhus.</td></tr>
+      <tr><td class="month">Jan-Feb 2027</td><td>Hämta offerter (3 entreprenörer/del). Boka trädgårdsarkitekt-konsultation om aktuellt.</td></tr>
+      <tr><td class="month">Mar 2027</td><td>Beslut om variant. Skriv entreprenadskontrakt. Beställ häckplantor.</td></tr>
+      <tr><td class="month">Apr 2027</td><td>Markarbete startar. Pool-grävning om aktuellt. Plantera häck och träd.</td></tr>
+      <tr><td class="month">Maj 2027</td><td>Altan-bygge. Pool-installation pågår. Lägg gräsrulle innan månadsslut.</td></tr>
+      <tr><td class="month">Jun 2027</td><td>Färdigställ altan. Asfaltera infart. Pool klar att fyllas.</td></tr>
+      <tr><td class="month">Jul-Aug 2027</td><td>Första riktiga sommaren! Möblera, lekutrustning, finputsa.</td></tr>
+      <tr><td class="month">Sep-Okt 2027</td><td>Perenner, lökväxter. Förbered pool/spa för vintern.</td></tr>
+      <tr><td class="month">Nov 2027</td><td>Vinterförbered: täck pool, lyft in möbler, klipp häcken sista gång.</td></tr>
+      <tr><td class="month">2028+</td><td>Underhåll-läge. Komplettera där behov uppstår.</td></tr>
+      <tr><td class="month" style="color:#8a4a8a;">Dec 2031</td><td>⭐ ROT-avdrag tillgängligt. Planera ev. tillbyggnader nu.</td></tr>
+    </table>
+  </div>
+
+  <div class="marker-rot">
+    <strong>⭐ ROT-strategi:</strong> Eftersom ROT (30%) inte gäller de första 5 åren av nyproduktion,
+    blir <em>strategisk timing</em> värdefull. Stora ingrepp som <em>inte</em> är akuta nu (poolhus, tak över altanen,
+    extra friggebod, omfattande markrenovering) kan med fördel skjutas till <strong>tidigast slutet av 2031</strong>
+    för att då kvalificera för ROT-avdrag.
+  </div>
+
+  <h2>Risker &amp; saker att tänka på</h2>
+
+  <ul style="font-size: 0.88rem;">
+    <li><strong>Inflyttning december → första vinter utan trädgård:</strong> Räkna med lera, snö över gropar, ingen gräsmatta. Helt normalt.</li>
+    <li><strong>Pool-leverantör har leveranstider</strong> på 4-8 veckor. Bestäm tidigt under vintern 2027.</li>
+    <li><strong>Häckplantor</strong> hämtas vanligen vid plantskola. Kostar mindre än hemleverans men kräver bil.</li>
+    <li><strong>Markförhållanden:</strong> Vaksala-Lunda kan ha lera/silt. Begär markundersökning innan pool-grävning (~5-15k kr).</li>
+    <li><strong>Vatten- &amp; el-anslutning</strong> till pool/spa måste planeras ihop med Uppsala Vatten &amp; behörig elektriker.</li>
+    <li><strong>Etappvis</strong> är klokt: gör altanen + häcken + gräset år 1. Spara pool/spa till år 2 om budget eller tid är trång.</li>
+    <li><strong>Granne-relationer:</strong> Informera grannar i god tid om buller från grävmaskiner (mar-maj 2027).</li>
+  </ul>
+
+  <p class="footnote">
+    Tidsplan baserad på Uppsala-klimat (zon 4-5), genomsnittlig pool-/altan-anläggningstid och normala leveranstider. Justera vid:
+    försenat husbygge, hård vinter 2026/27, eller försenade entreprenörer. Planera ALLTID med 1-2 veckors buffer per fas.
+    Skapad 2026-04-26.
+  </p>
+</div>
+</body>
+</html>

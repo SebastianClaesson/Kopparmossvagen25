@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skiss — Villa Lindbacken, Vaksala-Lunda 39:4</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    padding: 16px;
+    background: #f7f4ec;
+    color: #1a1a1a;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  header { border-bottom: 1px solid #999; padding-bottom: 8px; margin-bottom: 12px; }
+  h1 { font-size: 1rem; margin: 0 0 2px; font-weight: 700; letter-spacing: 0.5px; }
+  .sub { font-size: 0.78rem; color: #555; }
+  .nav-links { margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .nav-links a {
+    color: #2d4a2b;
+    text-decoration: none;
+    font-size: 0.82rem;
+    padding: 3px 10px;
+    border: 1px solid #2d4a2b;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+  .nav-links a.active, .nav-links a:hover { background: #2d4a2b; color: white; }
+  .controls {
+    display: flex;
+    gap: 6px;
+    margin: 10px 0 14px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.78rem;
+  }
+  button {
+    padding: 5px 10px;
+    border: 1px solid #444;
+    background: #f7f4ec;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.76rem;
+  }
+  button.active { background: #1a1a1a; color: #f7f4ec; }
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 14px;
+  }
+  @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+  .map, .info {
+    background: #fdfbf4;
+    border: 1px solid #444;
+  }
+  .map { padding: 8px; }
+  .info { padding: 12px; font-size: 0.78rem; line-height: 1.5; }
+  .info h3 { margin: 0 0 4px; font-size: 0.82rem; border-bottom: 1px solid #999; padding-bottom: 2px; }
+  .info h3:not(:first-child) { margin-top: 12px; }
+  .info table { width: 100%; border-collapse: collapse; font-size: 0.74rem; }
+  .info td { padding: 2px 4px; vertical-align: top; }
+  .info td:first-child { color: #555; width: 55%; }
+  .info td:last-child { text-align: right; font-weight: 600; }
+  svg { display: block; width: 100%; height: auto; background: #fdfbf4; }
+  .plot { fill: none; stroke: #1a1a1a; stroke-width: 0.7; stroke-dasharray: 3 2; }
+  .plot-fill { fill: #f7f4ec; stroke: none; }
+  .road-fill { fill: #d8d4c0; stroke: none; }
+  .road-line { fill: none; stroke: #1a1a1a; stroke-width: 0.4; }
+  .road-dash { fill: none; stroke: #999; stroke-width: 0.4; stroke-dasharray: 4 3; }
+  .building { fill: #ffffff; stroke: #1a1a1a; stroke-width: 0.7; }
+  .roof-line { fill: none; stroke: #1a1a1a; stroke-width: 0.4; stroke-dasharray: 1.5 1.5; }
+  .deck { fill: #f4ead8; stroke: #1a1a1a; stroke-width: 0.5; }
+  .lawn { fill: #eef3df; stroke: none; }
+  .pool { fill: #d8eaf0; stroke: #1a1a1a; stroke-width: 0.6; }
+  .pool-coping { fill: #dcd5c0; stroke: #1a1a1a; stroke-width: 0.4; }
+  .hot-tub { fill: #c8b090; stroke: #1a1a1a; stroke-width: 0.6; }
+  .sauna { fill: #d8d4c0; stroke: #1a1a1a; stroke-width: 0.6; }
+  .pergola { fill: none; stroke: #a07650; stroke-width: 0.8; stroke-dasharray: 1 0.8; }
+  .firepit { fill: #f0a060; stroke: #6a4828; stroke-width: 0.5; }
+  .flowerbed { fill: #c8e0c8; stroke: #6a4828; stroke-width: 0.4; }
+  .hedge { fill: #d4e0c0; stroke: #1a1a1a; stroke-width: 0.4; stroke-dasharray: 1 0.6; }
+  .tree { fill: #ffffff; stroke: #1a1a1a; stroke-width: 0.5; }
+  .tree-fill { fill: #f0e0e4; stroke: #1a1a1a; stroke-width: 0.5; }
+  .driveway { fill: #e0e0e0; stroke: #1a1a1a; stroke-width: 0.4; }
+  .play { fill: #ffffff; stroke: #1a1a1a; stroke-width: 0.5; }
+  .dim-line { stroke: #b04020; stroke-width: 0.3; fill: none; }
+  .dim-tick { stroke: #b04020; stroke-width: 0.3; }
+  .dim-text { font-size: 3.6px; fill: #b04020; font-family: 'Courier New', monospace; }
+  .label { font-size: 4px; fill: #1a1a1a; font-family: 'Courier New', monospace; }
+  .label-bold { font-size: 4.4px; fill: #1a1a1a; font-weight: 700; font-family: 'Courier New', monospace; }
+  .label-small { font-size: 3px; fill: #444; font-family: 'Courier New', monospace; }
+  .grid { stroke: #ddd; stroke-width: 0.15; fill: none; }
+  .hidden { display: none; }
+  .ok-banner {
+    background: #ecf3e0;
+    border: 1px solid #2d4a2b;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    font-size: 0.78rem;
+    color: #1a3010;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>SITUATIONSSKISS — VAKSALA-LUNDA 39:4</h1>
+    <div class="sub">Kopparmossvägen 25, 75472 Uppsala &nbsp;·&nbsp; A-hus Lindbacken R Flex (modern)</div>
+    <div class="nav-links">
+      <a href="index.html" class="active">2D-skiss</a>
+      <a href="3d.html">3D-vy</a>
+      <a href="priser.html">Prislista</a>
+      <a href="planering.html">Planering</a>
+    </div>
+  </header>
+
+  <div class="ok-banner">
+    <strong>Tomt 20,25 × 34 m (688 m²) · 4 layout-alternativ.</strong>
+    Skala 1 m = 14 px (1:200 vid utskrift A4).
+    För full 3D-rendering, se <a href="3d.html" style="color:#2d4a2b; font-weight:700;">3D-vy</a>.
+  </div>
+
+  <div class="controls">
+    <span style="font-weight: 700;">Variant:</span>
+    <button id="btn-A" class="active" onclick="setVariant('A')">A · Pool i söder</button>
+    <button id="btn-B" onclick="setVariant('B')">B · Pool längs SV</button>
+    <button id="btn-C" onclick="setVariant('C')">C · Bubbelpool + bastu</button>
+    <button id="btn-D" onclick="setVariant('D')">D · Bara fin trädgård</button>
+  </div>
+
+  <div class="layout">
+    <div class="map">
+      <!--
+        Coordinate system: 1 m = 14 px
+        Plot 20,25 × 34 m → 283,5 × 476 px
+        Plot offset in viewBox: (60, 60)
+        World→SVG conversion:
+            x_svg = 60 + (X_3D + 10.125) * 14
+            y_svg = 60 + (Z_3D + 17) * 14
+        World axis: +X = NÖ, +Z = SO. Road at -Z (top).
+      -->
+      <svg viewBox="0 0 410 620" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- 1m grid -->
+        <defs>
+          <pattern id="grid1m" x="60" y="60" width="14" height="14" patternUnits="userSpaceOnUse">
+            <path d="M 14 0 L 0 0 0 14" class="grid"/>
+          </pattern>
+        </defs>
+        <rect x="60" y="60" width="283.5" height="476" fill="url(#grid1m)"/>
+
+        <!-- Road (Kopparmossvägen) along NW edge (top) -->
+        <rect class="road-fill" x="0" y="0" width="410" height="50"/>
+        <line class="road-line" x1="0" y1="50" x2="410" y2="50"/>
+        <line class="road-dash" x1="0" y1="25" x2="410" y2="25"/>
+        <text class="label-bold" x="205" y="20" text-anchor="middle">KOPPARMOSSVÄGEN</text>
+        <text class="label-small" x="205" y="32" text-anchor="middle">(NV-sida av tomten)</text>
+
+        <!-- Plot 20,25 × 34 m -->
+        <rect class="plot-fill" x="60" y="60" width="283.5" height="476"/>
+        <rect class="plot" x="60" y="60" width="283.5" height="476"/>
+
+        <!-- Plot dimension labels -->
+        <g>
+          <line class="dim-line" x1="60" y1="55" x2="343.5" y2="55"/>
+          <line class="dim-tick" x1="60" y1="51" x2="60" y2="59"/>
+          <line class="dim-tick" x1="343.5" y1="51" x2="343.5" y2="59"/>
+          <text class="dim-text" x="201.75" y="53" text-anchor="middle">20,25 m (kortsida mot väg)</text>
+
+          <line class="dim-line" x1="348.5" y1="60" x2="348.5" y2="536"/>
+          <line class="dim-tick" x1="344.5" y1="60" x2="352.5" y2="60"/>
+          <line class="dim-tick" x1="344.5" y1="536" x2="352.5" y2="536"/>
+          <text class="dim-text" x="355" y="298" text-anchor="middle" transform="rotate(90 355 298)">34,00 m (långsida)</text>
+        </g>
+
+        <!-- Lawn fill (slightly inset from boundary for hedges) -->
+        <rect class="lawn" x="62" y="62" width="279.5" height="472"/>
+
+        <!-- Thuja hedges along long property boundaries -->
+        <rect class="hedge" x="60" y="60" width="14" height="476"/>
+        <rect class="hedge" x="329.5" y="60" width="14" height="476"/>
+        <text class="label-small" x="67" y="298" text-anchor="middle" transform="rotate(-90 67 298)">THUJA · 1m</text>
+        <text class="label-small" x="336.5" y="298" text-anchor="middle" transform="rotate(90 336.5 298)">THUJA · 1m</text>
+
+        <!-- ============================================================
+             DRIVEWAY + EXTRA P-PLATS
+             Carport NV-edge at z=-12 → y_svg = 60 + 5*14 = 130
+             Driveway from road (y=60) to carport (y=130), 5m gap
+             ============================================================ -->
+        <rect class="driveway" x="81" y="50" width="55.16" height="80"/>
+        <text class="label-small" x="108.58" y="115" text-anchor="middle">INFART</text>
+        <text class="label-small" x="108.58" y="123" text-anchor="middle">5 m</text>
+
+        <!-- ============================================================
+             CARPORT — 3,94 × 8,69 m, position (-6,655, -7,655)
+             Aligned with house NV-gable, 1,5m from SW boundary
+             SVG: x=81, y=130, w=55.16, h=121.66 → ends at (136.16, 251.66)
+             ============================================================ -->
+        <g>
+          <rect class="building" x="81" y="130" width="55.16" height="121.66"/>
+          <line x1="81" y1="220" x2="136.16" y2="220" stroke="#1a1a1a" stroke-width="0.5"/>
+          <line class="roof-line" x1="108.58" y1="130" x2="108.58" y2="251.66"/>
+
+          <text class="label-small" x="108.58" y="139" text-anchor="middle">öppen sida ↑ (NV)</text>
+          <text class="label-bold" x="108.58" y="174" text-anchor="middle">CARPORT</text>
+          <text class="label-small" x="108.58" y="182" text-anchor="middle">22,0 m²</text>
+          <text class="label-small" x="108.58" y="190" text-anchor="middle">3,94 × 6,45 m</text>
+          <text class="label" x="108.58" y="230" text-anchor="middle">FÖRRÅD</text>
+          <text class="label-small" x="108.58" y="238" text-anchor="middle">8,5 m²</text>
+          <text class="label-small" x="108.58" y="246" text-anchor="middle">3,94 × 2,24 m</text>
+
+          <!-- Setback labels -->
+          <line class="dim-line" x1="60" y1="258" x2="81" y2="258"/>
+          <line class="dim-tick" x1="60" y1="254" x2="60" y2="262"/>
+          <line class="dim-tick" x1="81" y1="254" x2="81" y2="262"/>
+          <text class="dim-text" x="70" y="267" text-anchor="middle">1,5 m</text>
+
+          <line class="dim-line" x1="81" y1="258" x2="136.16" y2="258"/>
+          <text class="dim-text" x="108.58" y="267" text-anchor="middle">3,94 m</text>
+        </g>
+
+        <!-- ============================================================
+             HOUSE — 7,73 × 12,83 m, position (3,26, -5,585)
+             3 m from NÖ, 5 m from NV (front), aligned with carport NV
+             SVG: x=193.28, y=130, w=108.22, h=179.62 → ends at (301.5, 309.62)
+             ============================================================ -->
+        <g>
+          <rect class="building" x="193.28" y="130" width="108.22" height="179.62"/>
+          <line class="roof-line" x1="247.39" y1="130" x2="247.39" y2="309.62"/>
+          <!-- Solar panels SW takfall -->
+          <rect fill="none" stroke="#1a1a1a" stroke-width="0.3" stroke-dasharray="1 1"
+                x="198" y="148" width="46" height="140"/>
+          <text class="label-small" x="221" y="218" text-anchor="middle" opacity="0.6">SOLPANELER</text>
+          <text class="label-small" x="221" y="226" text-anchor="middle" opacity="0.6">(SV takfall)</text>
+          <!-- Chimney -->
+          <rect fill="#1a1a1a" x="244.39" y="216" width="6" height="6"/>
+
+          <!-- Doors -->
+          <rect fill="#1a1a1a" x="210" y="128" width="6" height="3"/>
+          <rect fill="#1a1a1a" x="275" y="128" width="6" height="3"/>
+          <text class="label-small" x="213" y="125" text-anchor="middle">entré</text>
+          <text class="label-small" x="278" y="125" text-anchor="middle">groventré</text>
+
+          <!-- SV-långsida: 2 dörrar (en flyttad från matplatsen vid SE-änden) -->
+          <rect fill="#1a1a1a" x="191.28" y="277" width="3" height="14"/>
+          <text class="label-small" x="185" y="286" text-anchor="end">matplats-dörr</text>
+          <rect fill="#1a1a1a" x="191.28" y="207" width="3" height="14"/>
+          <text class="label-small" x="185" y="217" text-anchor="end">vardagsrum-dörr</text>
+
+          <!-- NÖ-långsida: 1 dörr (kök-utgång) -->
+          <rect fill="#1a1a1a" x="300.5" y="262" width="3" height="14"/>
+          <text class="label-small" x="307" y="272">kök-dörr</text>
+
+          <!-- SE-gavel: 2 stora fönster (inga dörrar) -->
+          <line stroke="#3a8aaa" stroke-width="2" x1="205" y1="310" x2="285" y2="310"/>
+          <text class="label-small" x="245" y="319" text-anchor="middle" fill="#3a6a8a">↑ STORA FÖNSTER (inga dörrar) ↑</text>
+
+          <text class="label-bold" x="270" y="200" text-anchor="middle">HUS</text>
+          <text class="label-small" x="270" y="208" text-anchor="middle">Lindbacken R Flex</text>
+          <text class="label-small" x="270" y="216" text-anchor="middle">7,73 × 12,83 m</text>
+          <text class="label-small" x="270" y="224" text-anchor="middle">172 m² · 2 vån</text>
+
+          <!-- Setbacks -->
+          <line class="dim-line" x1="301.5" y1="258" x2="343.5" y2="258"/>
+          <line class="dim-tick" x1="301.5" y1="254" x2="301.5" y2="262"/>
+          <line class="dim-tick" x1="343.5" y1="254" x2="343.5" y2="262"/>
+          <text class="dim-text" x="322.5" y="267" text-anchor="middle">3,0 m</text>
+
+          <!-- Front-setback (5m) -->
+          <line class="dim-line" x1="305" y1="60" x2="305" y2="130"/>
+          <line class="dim-tick" x1="301" y1="60" x2="309" y2="60"/>
+          <line class="dim-tick" x1="301" y1="130" x2="309" y2="130"/>
+          <text class="dim-text" x="312" y="95" text-anchor="middle" transform="rotate(90 312 95)">5,0 m</text>
+        </g>
+
+        <!-- ============================================================
+             DECK (L-shape)
+             SV-strip: full house length, 3,5 m wide along SW long side
+             SE-strip: across SE gable, 3,5 m deep
+             ============================================================ -->
+        <g>
+          <!-- SV-deck: x_3D [-4.105, -0.605], z_3D [-12, 0.83]
+               x_svg [144.28, 193.28], y_svg [130, 309.62]
+               Size: 49 × 179.62 -->
+          <rect class="deck" x="144.28" y="130" width="49" height="179.62"/>
+
+          <!-- SE-deck: x_3D [-4.105, 7.125], z_3D [0.83, 4.33]
+               x_svg [144.28, 301.5], y_svg [309.62, 358.62]
+               Size: 157.22 × 49 -->
+          <rect class="deck" x="144.28" y="309.62" width="157.22" height="49"/>
+
+          <text class="label-bold" x="168" y="280" text-anchor="middle">ALTAN SV</text>
+          <text class="label-bold" x="220" y="335" text-anchor="middle">ALTAN SE (söder)</text>
+          <text class="label-small" x="220" y="343" text-anchor="middle">L-form, ca 88 m² totalt</text>
+
+          <!-- Dining table on SE-deck -->
+          <rect fill="none" stroke="#1a1a1a" stroke-width="0.4" x="225" y="320" width="34" height="14"/>
+          <text class="label-small" x="242" y="330" text-anchor="middle">matplats 8</text>
+        </g>
+
+        <!-- ============================================================
+             VARIANT A: POOL i söder (kortsidan)
+             World: HOUSE_X-1 = 2.26, z = 8.73, size 4×8m
+             SVG: x_svg [205.39, 261.39], y_svg [364.22, 476.22]
+             ============================================================ -->
+        <g id="variant-A">
+          <rect class="pool-coping" x="199.79" y="358.62" width="67.2" height="123.2"/>
+          <rect class="pool" x="205.39" y="364.22" width="56" height="112"/>
+          <text class="label-bold" x="233.39" y="418" text-anchor="middle">POOL</text>
+          <text class="label-small" x="233.39" y="426" text-anchor="middle">4 × 8 m</text>
+          <text class="label-small" x="233.39" y="434" text-anchor="middle">stenkant</text>
+        </g>
+
+        <!-- ============================================================
+             VARIANT B: POOL längs SV, 2 m från carporten
+             World: x=-6.5, z=2.7, size 4×8m  (gap to carport SE: 2,01 m)
+             SVG: x_svg center 110.75, y_svg center 335.8
+             Coping: x_svg [77.15, 144.35], y_svg [274.2, 397.4]
+             ============================================================ -->
+        <g id="variant-B" class="hidden">
+          <rect class="pool-coping" x="77.15" y="274.2" width="67.2" height="123.2"/>
+          <rect class="pool" x="82.75" y="279.8" width="56" height="112"/>
+          <text class="label-bold" x="110.75" y="330" text-anchor="middle">POOL</text>
+          <text class="label-small" x="110.75" y="338" text-anchor="middle">4 × 8 m</text>
+          <text class="label-small" x="110.75" y="346" text-anchor="middle">2 m från carport</text>
+        </g>
+
+        <!-- ============================================================
+             VARIANT C: BUBBELPOOL + BASTU
+             Hot tub: world (-2.355, 2.13) → x_svg 168.78, y_svg 327.82
+             Sauna: world (-3, 12) → x_svg 159.75, y_svg 466
+             ============================================================ -->
+        <g id="variant-C" class="hidden">
+          <!-- Hot tub on SE-deck -->
+          <rect class="deck" x="154.78" y="313.82" width="28" height="28"/>
+          <circle class="hot-tub" cx="168.78" cy="327.82" r="14"/>
+          <text class="label-bold" x="168.78" y="329" text-anchor="middle">SPA</text>
+          <text class="label-small" x="168.78" y="350" text-anchor="middle">bubbelpool ø 2 m</text>
+
+          <!-- Stone path from hot tub to sauna -->
+          <g fill="#d4ccb4" stroke="#1a1a1a" stroke-width="0.3">
+            <rect x="155" y="358" width="8" height="6"/>
+            <rect x="153" y="378" width="8" height="6"/>
+            <rect x="152" y="398" width="8" height="6"/>
+            <rect x="153" y="420" width="8" height="6"/>
+            <rect x="155" y="442" width="8" height="6"/>
+          </g>
+
+          <!-- Sauna 2 × 3 m at world (-3, 12) -->
+          <g>
+            <rect class="sauna" x="145.75" y="445" width="28" height="42"/>
+            <rect fill="#1a1a1a" x="155" y="443" width="10" height="3"/>
+            <rect fill="#fde47a" stroke="#1a1a1a" stroke-width="0.3" x="172" y="451" width="6" height="6"/>
+            <text class="label-bold" x="159.75" y="464" text-anchor="middle">BASTU</text>
+            <text class="label-small" x="159.75" y="472" text-anchor="middle">2 × 3 m</text>
+          </g>
+        </g>
+
+        <!-- ============================================================
+             VARIANT D: BARA FIN TRÄDGÅRD
+             Pergola at world (2, 11), Firepit at (-3, 8), flowerbeds
+             ============================================================ -->
+        <g id="variant-D" class="hidden">
+          <!-- Pergola 4×3 m at world (2, 11) -->
+          <!-- x_svg center: 60 + (2 + 10.125)*14 = 229.75
+               y_svg center: 60 + (11 + 17)*14 = 452
+               Size: 56 × 42 -->
+          <g>
+            <rect class="pergola" x="201.75" y="431" width="56" height="42"/>
+            <!-- Slats indicator -->
+            <line stroke="#a07650" stroke-width="0.4" x1="210" y1="431" x2="210" y2="473"/>
+            <line stroke="#a07650" stroke-width="0.4" x1="218" y1="431" x2="218" y2="473"/>
+            <line stroke="#a07650" stroke-width="0.4" x1="226" y1="431" x2="226" y2="473"/>
+            <line stroke="#a07650" stroke-width="0.4" x1="234" y1="431" x2="234" y2="473"/>
+            <line stroke="#a07650" stroke-width="0.4" x1="242" y1="431" x2="242" y2="473"/>
+            <line stroke="#a07650" stroke-width="0.4" x1="250" y1="431" x2="250" y2="473"/>
+            <!-- Inside: table + 4 chairs -->
+            <rect fill="none" stroke="#1a1a1a" stroke-width="0.4" x="219" y="445" width="20" height="14"/>
+            <text class="label-bold" x="229.75" y="455" text-anchor="middle">PERGOLA</text>
+            <text class="label-small" x="229.75" y="478" text-anchor="middle">4 × 3 m, sittgrupp 4 pers</text>
+          </g>
+
+          <!-- Firepit at world (-3, 8) -->
+          <!-- x_svg: 60 + (-3 + 10.125)*14 = 159.75
+               y_svg: 60 + (8 + 17)*14 = 410 -->
+          <g>
+            <circle fill="none" stroke="#6a4828" stroke-width="1.0" cx="159.75" cy="410" r="13"/>
+            <circle class="firepit" cx="159.75" cy="410" r="6"/>
+            <!-- Log seats -->
+            <g fill="#a07650" stroke="#5a3a1a" stroke-width="0.3">
+              <rect x="170" y="408" width="10" height="3"/>
+              <rect x="139.75" y="408" width="10" height="3"/>
+              <rect x="158" y="395" width="3" height="10"/>
+              <rect x="158" y="423" width="3" height="10"/>
+            </g>
+            <text class="label-bold" x="159.75" y="412" text-anchor="middle" fill="#6a2810">⌣</text>
+            <text class="label-small" x="159.75" y="438" text-anchor="middle">ELDSTAD ø 1,8 m</text>
+          </g>
+
+          <!-- Flower beds (3) -->
+          <g>
+            <!-- Bed 1: world (-3, 4) → svg (159.75, 354) -->
+            <rect class="flowerbed" x="142.25" y="348" width="35" height="11"/>
+            <text class="label-small" x="159.75" y="355" text-anchor="middle">PERENNER (rosa)</text>
+
+            <!-- Bed 2: world (5, 6) → svg (271.75, 382) -->
+            <rect class="flowerbed" x="254.25" y="376" width="35" height="11"/>
+            <text class="label-small" x="271.75" y="383" text-anchor="middle">PERENNER (gul)</text>
+
+            <!-- Bed 3: world (-1, 14) → svg (187.75, 494) -->
+            <rect class="flowerbed" x="170.25" y="488" width="35" height="11"/>
+            <text class="label-small" x="187.75" y="495" text-anchor="middle">PERENNER (lila)</text>
+          </g>
+        </g>
+
+        <!-- ============================================================
+             TREES (alla varianter) — kvalitetsoptimerade positioner
+             Cherry: world (-9, 7), (-9, 10) → svg (75.75, 396), (75.75, 438)
+             Apple:  world (-2, 5), (8, 12)  → svg (173.75, 368), (313.75, 466)
+             ============================================================ -->
+        <g>
+          <circle class="tree-fill" cx="75.75" cy="396" r="11"/>
+          <circle fill="#5a3a20" cx="75.75" cy="396" r="2"/>
+          <text class="label-small" x="75.75" y="412" text-anchor="middle">KÖRSBÄR</text>
+
+          <circle class="tree-fill" cx="75.75" cy="438" r="11"/>
+          <circle fill="#5a3a20" cx="75.75" cy="438" r="2"/>
+          <text class="label-small" x="75.75" y="454" text-anchor="middle">KÖRSBÄR</text>
+
+          <circle class="tree" cx="173.75" cy="368" r="11"/>
+          <circle fill="#5a3a20" cx="173.75" cy="368" r="2"/>
+          <text class="label-small" x="173.75" y="384" text-anchor="middle">ÄPPLE ø 3 m</text>
+
+          <circle class="tree" cx="313.75" cy="466" r="11"/>
+          <circle fill="#5a3a20" cx="313.75" cy="466" r="2"/>
+          <text class="label-small" x="313.75" y="482" text-anchor="middle">ÄPPLE</text>
+        </g>
+
+        <!-- ============================================================
+             PLAY AREA — climbing frame at world (-5, 7), trampoline at (-7, 13)
+             Climbing svg: x=110.75, y=388 (2×3 m = 28×42)
+             Trampoline svg: x=124.75, y=480 (ø 4.3 m = 60.2 px)
+             ============================================================ -->
+        <g>
+          <rect class="play" x="96.75" y="367" width="28" height="42"/>
+          <text class="label-small" x="110.75" y="385" text-anchor="middle">KLÄTTER-</text>
+          <text class="label-small" x="110.75" y="392" text-anchor="middle">STÄLL.</text>
+          <text class="label-small" x="110.75" y="399" text-anchor="middle">2 × 3 m</text>
+
+          <circle class="play" cx="131.75" cy="480" r="30.1"/>
+          <circle fill="none" stroke="#1a1a1a" stroke-width="0.3" stroke-dasharray="1 1" cx="131.75" cy="480" r="26"/>
+          <text class="label-small" x="131.75" y="478" text-anchor="middle">STUDSMATTA</text>
+          <text class="label-small" x="131.75" y="486" text-anchor="middle">SALT 4,3 m</text>
+        </g>
+
+        <!-- Compass top-right -->
+        <g transform="translate(388, 90)">
+          <circle fill="#fdfbf4" stroke="#1a1a1a" stroke-width="0.5" cx="0" cy="0" r="20"/>
+          <polygon fill="#1a1a1a" points="0,-14 3,0 0,14 -3,0"/>
+          <polygon fill="none" stroke="#1a1a1a" stroke-width="0.4" points="-14,0 0,3 14,0 0,-3"/>
+          <text class="label-bold" x="0" y="-17" text-anchor="middle">N</text>
+          <text class="label" x="0" y="24" text-anchor="middle">S</text>
+          <text class="label" x="-21" y="2" text-anchor="middle">V</text>
+          <text class="label" x="21" y="2" text-anchor="middle">Ö</text>
+          <text class="label-small" x="0" y="32" text-anchor="middle">NV ↑ (väg)</text>
+        </g>
+
+        <!-- Scale bar -->
+        <g transform="translate(60, 600)">
+          <rect fill="#fdfbf4" stroke="#1a1a1a" stroke-width="0.4" x="0" y="0" width="70" height="4"/>
+          <rect fill="#1a1a1a" x="0" y="0" width="14" height="4"/>
+          <rect fill="#1a1a1a" x="28" y="0" width="14" height="4"/>
+          <rect fill="#1a1a1a" x="56" y="0" width="14" height="4"/>
+          <text class="label-small" x="0" y="11">0</text>
+          <text class="label-small" x="26" y="11">2</text>
+          <text class="label-small" x="54" y="11">4</text>
+          <text class="label-small" x="68" y="11">5 m</text>
+        </g>
+
+        <text class="label-small" x="200" y="600">Skala 1:200 (på A4)</text>
+        <text class="label-small" x="200" y="609">FG +34,60 (golvhöjd)</text>
+        <text class="label-bold" x="200" y="555" text-anchor="middle" font-size="6">SITUATIONSSKISS — VAKSALA-LUNDA 39:4</text>
+
+      </svg>
+    </div>
+
+    <div class="info">
+      <h3>Mått (exakt)</h3>
+      <table>
+        <tr><td>Tomt yttermått</td><td>20,25 × 34 m</td></tr>
+        <tr><td>Tomtarea</td><td>688,5 m²</td></tr>
+        <tr><td>Hus, fotavtryck</td><td>7,73 × 12,83 m</td></tr>
+        <tr><td>Hus, boarea</td><td>172 m² (2 vån)</td></tr>
+        <tr><td>Carport totalt</td><td>3,94 × 8,69 m</td></tr>
+        <tr><td>Färdigt golv (FG)</td><td>+34,60</td></tr>
+      </table>
+
+      <h3>Setbacks</h3>
+      <table>
+        <tr><td>Hus → NÖ-granne</td><td>3,0 m</td></tr>
+        <tr><td>Hus → NV (väg)</td><td>5,0 m</td></tr>
+        <tr><td>Carport → SV-granne</td><td>1,5 m</td></tr>
+        <tr><td>Carport → NV</td><td>5,0 m (i linje)</td></tr>
+        <tr><td>Lucka mellan</td><td>4,08 m</td></tr>
+        <tr><td>Bakre trädgård</td><td>16,17 m djup</td></tr>
+      </table>
+
+      <h3>Variant-överblick</h3>
+      <table style="font-size: 0.72rem;">
+        <tr><td><strong>A</strong> Pool i söder</td><td>~830k</td></tr>
+        <tr><td><strong>B</strong> Pool längs SV</td><td>~830k</td></tr>
+        <tr><td><strong>C</strong> Spa + bastu</td><td>~680k</td></tr>
+        <tr><td><strong>D</strong> Bara trädgård</td><td>~555k</td></tr>
+      </table>
+      <p style="margin: 4px 0 0; font-size: 0.74rem;">
+        Belopp = medel-nivå.<br>
+        <a href="priser.html" style="color:#2d4a2b;">→ Full prislista</a>
+      </p>
+
+      <h3>Orientering</h3>
+      <p style="margin: 0; font-size: 0.74rem;">
+        <strong>NV ↑</strong> Väg, infart, carport, entré<br>
+        <strong>SV ←</strong> Granne (1,5m carport)<br>
+        <strong>SO ↓</strong> Bakre trädgård (~16m)<br>
+        <strong>NÖ →</strong> Granne (3m hus)
+      </p>
+
+      <h3>3D-vy</h3>
+      <p style="margin: 0; font-size: 0.74rem;">
+        <a href="3d.html" style="color:#2d4a2b; font-weight:700;">→ Öppna 3D-rendering</a><br>
+        Roterbar, samma 4 varianter, exakt skalad.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+function setVariant(v) {
+  ['A','B','C','D'].forEach(name => {
+    document.getElementById('btn-' + name).classList.toggle('active', name === v);
+    document.getElementById('variant-' + name).classList.toggle('hidden', name !== v);
+  });
+}
+</script>
+</body>
+</html>

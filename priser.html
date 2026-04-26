@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prislista — Villa Lindbacken trädgård</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #f7f4ec;
+    color: #1a1a1a;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  header { border-bottom: 1px solid #999; padding-bottom: 8px; margin-bottom: 16px; }
+  h1 { font-size: 1.2rem; margin: 0 0 4px; font-weight: 700; }
+  .sub { font-size: 0.85rem; color: #555; }
+  .nav-links { margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .nav-links a {
+    color: #2d4a2b;
+    text-decoration: none;
+    font-size: 0.82rem;
+    padding: 4px 12px;
+    border: 1px solid #2d4a2b;
+    border-radius: 4px;
+  }
+  .nav-links a.active, .nav-links a:hover { background: #2d4a2b; color: white; }
+  .disclaimer {
+    background: #fef3e6;
+    border: 1px solid #b07020;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    font-size: 0.85rem;
+    color: #6a3010;
+    border-radius: 4px;
+  }
+  h2 {
+    font-size: 1rem;
+    margin: 22px 0 8px;
+    padding: 6px 12px;
+    background: #2d4a2b;
+    color: white;
+    border-radius: 4px;
+  }
+  h3 { font-size: 0.92rem; margin: 14px 0 6px; color: #2d4a2b; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 18px;
+    font-size: 0.85rem;
+    background: white;
+  }
+  th, td {
+    padding: 6px 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  th {
+    background: #ecf3e0;
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.subtotal td { font-weight: 700; background: #f5f5ee; border-top: 2px solid #999; }
+  tr.total td { font-weight: 700; background: #2d4a2b; color: white; border: none; font-size: 0.95rem; }
+  tr.note td { font-style: italic; color: #777; font-size: 0.78rem; padding: 4px 10px; background: #fafaf3; }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin: 16px 0;
+  }
+  @media (max-width: 760px) { .compare-grid { grid-template-columns: 1fr; } }
+  .card {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 14px;
+  }
+  .card h3 { margin-top: 0; }
+  .card .total-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-top: 1px solid #ccc;
+    margin-top: 8px;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .price-low { color: #5a8a40; }
+  .price-mid { color: #b08030; }
+  .price-high { color: #b04020; }
+  .decision {
+    background: #ecf3e0;
+    border: 1px solid #2d4a2b;
+    padding: 14px 18px;
+    margin: 20px 0;
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+  .decision h3 { margin-top: 0; }
+  .pill {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+  .pill-low { background: #d8e8c8; color: #3a5a20; }
+  .pill-mid { background: #f5e6c8; color: #6a4810; }
+  .pill-high { background: #f0d4c8; color: #6a2010; }
+  .footnote { font-size: 0.78rem; color: #888; margin-top: 24px; line-height: 1.4; }
+  .variant-badge {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    color: white;
+    font-weight: 700;
+    margin-right: 8px;
+    font-size: 0.85rem;
+  }
+  .badge-A { background: #2d6a8a; }
+  .badge-B { background: #5a4a8a; }
+  .badge-C { background: #a06030; }
+  .badge-D { background: #5a8a40; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>PRISLISTA &amp; KOSTNADSESTIMAT</h1>
+    <div class="sub">Trädgård · Vaksala-Lunda 39:4 · Kopparmossvägen 25</div>
+    <div class="nav-links">
+      <a href="index.html">2D-skiss</a>
+      <a href="3d.html">3D-vy</a>
+      <a href="priser.html" class="active">Prislista</a>
+      <a href="planering.html">Planering</a>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <strong>OBS — estimat, inte offerter.</strong> Priser är generella för Uppsala-området 2026 inkl. moms.
+    Spannet <span class="pill pill-low">LÅG</span> = DIY/budget,
+    <span class="pill pill-mid">MEDEL</span> = standardproffsentreprenad,
+    <span class="pill pill-high">HÖG</span> = premium med arkitekt/specialvirke. Hämta alltid 2-3 riktiga offerter innan beslut.
+  </div>
+
+  <h2><span class="variant-badge badge-A">A</span> Pool i söder (kortsidan)</h2>
+
+  <h3>Hård landskap</h3>
+  <table>
+    <thead>
+      <tr><th>Post</th><th>Mängd</th><th class="num">Låg</th><th class="num">Medel</th><th class="num">Hög</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Pool nedsänkt 4 × 8 m</td>
+        <td>32 m²</td>
+        <td class="num price-low">150 000</td>
+        <td class="num price-mid">350 000</td>
+        <td class="num price-high">700 000</td>
+      </tr>
+      <tr class="note"><td colspan="5">Komplett anläggning inkl. grävning, betong/liner, filter, värmepump, belysning. Premium = exkl. kakel + auto-täcke.</td></tr>
+      <tr><td>Altan/trall (L-form)</td><td>~85 m²</td><td class="num price-low">130 000</td><td class="num price-mid">220 000</td><td class="num price-high">380 000</td></tr>
+      <tr><td>Asfaltinfart + p-platta</td><td>~30 m²</td><td class="num price-low">25 000</td><td class="num price-mid">40 000</td><td class="num price-high">60 000</td></tr>
+      <tr><td>Stenstig + plattor</td><td>~10 m²</td><td class="num price-low">8 000</td><td class="num price-mid">15 000</td><td class="num price-high">25 000</td></tr>
+      <tr class="subtotal"><td colspan="2">Delsumma hård landskap</td><td class="num price-low">313 000</td><td class="num price-mid">625 000</td><td class="num price-high">1 165 000</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Mjuk landskap (växter)</h3>
+  <table>
+    <tbody>
+      <tr><td>Gräsmatta (sådd / färdig rulle)</td><td>~400 m²</td><td class="num price-low">12 000</td><td class="num price-mid">45 000</td><td class="num price-high">75 000</td></tr>
+      <tr><td>Thuja-häck (Smaragd e.d.)</td><td>~60 m</td><td class="num price-low">25 000</td><td class="num price-mid">45 000</td><td class="num price-high">75 000</td></tr>
+      <tr><td>Fruktträd (2 körsbär + 2 äpple)</td><td>4 st</td><td class="num price-low">5 000</td><td class="num price-mid">12 000</td><td class="num price-high">25 000</td></tr>
+      <tr><td>Mindre buskar / perenner</td><td>~30 st</td><td class="num price-low">5 000</td><td class="num price-mid">15 000</td><td class="num price-high">35 000</td></tr>
+      <tr class="subtotal"><td colspan="2">Delsumma mjuk landskap</td><td class="num price-low">47 000</td><td class="num price-mid">117 000</td><td class="num price-high">210 000</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Lekutrustning &amp; möblering</h3>
+  <table>
+    <tbody>
+      <tr><td>Studsmatta SALT Premium ø 4,3 m</td><td>1 st</td><td class="num" colspan="3" style="text-align:center;">— ni har redan —</td></tr>
+      <tr><td>Klätterställning + rutschkana</td><td>1 st</td><td class="num price-low">8 000</td><td class="num price-mid">25 000</td><td class="num price-high">60 000</td></tr>
+      <tr><td>Utemöbler (matgrupp 8 + solstolar)</td><td>—</td><td class="num price-low">15 000</td><td class="num price-mid">35 000</td><td class="num price-high">80 000</td></tr>
+      <tr><td>Pool-tillbehör (täcke, stege, robot)</td><td>—</td><td class="num price-low">10 000</td><td class="num price-mid">25 000</td><td class="num price-high">50 000</td></tr>
+      <tr class="subtotal"><td colspan="2">Delsumma lek &amp; möbler</td><td class="num price-low">33 000</td><td class="num price-mid">85 000</td><td class="num price-high">190 000</td></tr>
+    </tbody>
+  </table>
+
+  <table><tr class="total"><td>VARIANT A TOTAL</td><td></td><td class="num">393 000</td><td class="num">827 000</td><td class="num">1 565 000</td></tr></table>
+
+  <h2><span class="variant-badge badge-B">B</span> Pool längs SV (vid carporten)</h2>
+
+  <p style="font-size: 0.88rem; margin: 6px 0 14px;">
+    Samma pool, andra placering — pool 4 × 8 m parallellt med husets långsida i SV-trädgården.
+    <strong>Kostnaderna är identiska med Variant A</strong> men markarbetet kan bli marginellt enklare/svårare beroende på markförhållanden.
+  </p>
+
+  <table><tr class="total"><td>VARIANT B TOTAL — pool längs SV-sidan</td><td></td><td class="num">393 000</td><td class="num">827 000</td><td class="num">1 565 000</td></tr></table>
+
+  <h2><span class="variant-badge badge-C">C</span> Bubbelpool + bastu (utan pool)</h2>
+
+  <h3>Hård landskap</h3>
+  <table>
+    <thead><tr><th>Post</th><th>Mängd</th><th class="num">Låg</th><th class="num">Medel</th><th class="num">Hög</th></tr></thead>
+    <tbody>
+      <tr><td>Bubbelpool / spa ø 2 m</td><td>1 st</td><td class="num price-low">35 000</td><td class="num price-mid">90 000</td><td class="num price-high">180 000</td></tr>
+      <tr class="note"><td colspan="5">Plug-and-play (låg) → träklädd badtunna med ved/el (medel) → premium spa Jacuzzi e.d. (hög). Exkl. el 5-15 000 kr.</td></tr>
+      <tr><td>Utomhusbastu 2 × 3 m</td><td>6 m²</td><td class="num price-low">60 000</td><td class="num price-mid">130 000</td><td class="num price-high">280 000</td></tr>
+      <tr class="note"><td colspan="5">Bastukit (låg) → färdigbyggd levererad (medel) → arkitektritad (hög). Inkl. vedugn / el-aggregat.</td></tr>
+      <tr><td>Altan/trall (L-form)</td><td>~85 m²</td><td class="num price-low">130 000</td><td class="num price-mid">220 000</td><td class="num price-high">380 000</td></tr>
+      <tr><td>Asfaltinfart + p-platta</td><td>~30 m²</td><td class="num price-low">25 000</td><td class="num price-mid">40 000</td><td class="num price-high">60 000</td></tr>
+      <tr><td>Stenstig (mer p.g.a. spa↔bastu)</td><td>~12 m²</td><td class="num price-low">10 000</td><td class="num price-mid">18 000</td><td class="num price-high">30 000</td></tr>
+      <tr class="subtotal"><td colspan="2">Delsumma hård landskap</td><td class="num price-low">260 000</td><td class="num price-mid">498 000</td><td class="num price-high">930 000</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Mjuk landskap (samma som A)</h3>
+  <table><tbody><tr class="subtotal"><td colspan="2">Delsumma mjuk landskap</td><td class="num price-low">47 000</td><td class="num price-mid">117 000</td><td class="num price-high">210 000</td></tr></tbody></table>
+
+  <h3>Lekutrustning &amp; möblering</h3>
+  <table>
+    <tbody>
+      <tr><td>Klätterställning + rutschkana</td><td>1 st</td><td class="num price-low">8 000</td><td class="num price-mid">25 000</td><td class="num price-high">60 000</td></tr>
+      <tr><td>Utemöbler (matgrupp 8)</td><td>—</td><td class="num price-low">12 000</td><td class="num price-mid">28 000</td><td class="num price-high">65 000</td></tr>
+      <tr><td>Spa-tillbehör (täcke, kemi)</td><td>—</td><td class="num price-low">5 000</td><td class="num price-mid">12 000</td><td class="num price-high">25 000</td></tr>
+      <tr class="subtotal"><td colspan="2">Delsumma lek &amp; möbler</td><td class="num price-low">25 000</td><td class="num price-mid">65 000</td><td class="num price-high">150 000</td></tr>
+    </tbody>
+  </table>
+
+  <table><tr class="total"><td>VARIANT C TOTAL</td><td></td><td class="num">332 000</td><td class="num">680 000</td><td class="num">1 290 000</td></tr></table>
+
+  <h2><span class="variant-badge badge-D">D</span> Bara fin trädgård (pergola + eldstad)</h2>
+
+  <p style="font-size: 0.88rem; margin: 6px 0 14px;">
+    Inget pool, ingen spa, ingen bastu — istället mer fokus på själva trädgården: pergola med sittgrupp, en stenring med eldstad och lite extra perennialbäddar. Maximal lekyta för barnen.
+  </p>
+
+  <h3>Hård landskap</h3>
+  <table>
+    <thead><tr><th>Post</th><th>Mängd</th><th class="num">Låg</th><th class="num">Medel</th><th class="num">Hög</th></tr></thead>
+    <tbody>
+      <tr><td>Altan/trall (L-form)</td><td>~85 m²</td><td class="num price-low">130 000</td><td class="num price-mid">220 000</td><td class="num price-high">380 000</td></tr>
+      <tr><td>Asfaltinfart + p-platta</td><td>~30 m²</td><td class="num price-low">25 000</td><td class="num price-mid">40 000</td><td class="num price-high">60 000</td></tr>
+      <tr><td>Stenstig + plattor</td><td>~10 m²</td><td class="num price-low">8 000</td><td class="num price-mid">15 000</td><td class="num price-high">25 000</td></tr>
+      <tr><td>Pergola 4 × 3 m (trä, m. tak-spjälor)</td><td>12 m²</td><td class="num price-low">15 000</td><td class="num price-mid">35 000</td><td class="num price-high">70 000</td></tr>
+      <tr class="note"><td colspan="5">Byggsats (låg) → snickare på plats (medel) → arkitektritad i lärk eller cederträ (hög).</td></tr>
+      <tr><td>Eldstad (stenring + 4 stockstolar)</td><td>1 st</td><td class="num price-low">8 000</td><td class="num price-mid">20 000</td><td class="num price-high">45 000</td></tr>
+      <tr class="note"><td colspan="5">Stenring själv (låg) → murad/granit (medel) → designerig eldstad i corten/granit (hög).</td></tr>
+      <tr class="subtotal"><td colspan="2">Delsumma hård landskap</td><td class="num price-low">186 000</td><td class="num price-mid">330 000</td><td class="num price-high">580 000</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Mjuk landskap</h3>
+  <table>
+    <tbody>
+      <tr><td>Gräsmatta</td><td>~440 m²</td><td class="num price-low">14 000</td><td class="num price-mid">50 000</td><td class="num price-high">85 000</td></tr>
+      <tr><td>Thuja-häck</td><td>~60 m</td><td class="num price-low">25 000</td><td class="num price-mid">45 000</td><td class="num price-high">75 000</td></tr>
+      <tr><td>Fruktträd (2+2)</td><td>4 st</td><td class="num price-low">5 000</td><td class="num price-mid">12 000</td><td class="num price-high">25 000</td></tr>
+      <tr><td>Perennialbäddar (3 st, 2,5 × 0,8 m)</td><td>~6 m²</td><td class="num price-low">10 000</td><td class="num price-mid">25 000</td><td class="num price-high">50 000</td></tr>
+      <tr class="note"><td colspan="5">Förkultiverat 2-årigt (låg) → större exemplar (medel) → designat färgschema med säsongsväxling (hög).</td></tr>
+      <tr><td>Övriga buskar / klätterväxter</td><td>~25 st</td><td class="num price-low">8 000</td><td class="num price-mid">22 000</td><td class="num price-high">45 000</td></tr>
+      <tr class="subtotal"><td colspan="2">Delsumma mjuk landskap</td><td class="num price-low">62 000</td><td class="num price-mid">154 000</td><td class="num price-high">280 000</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Lekutrustning &amp; möblering</h3>
+  <table>
+    <tbody>
+      <tr><td>Klätterställning + rutschkana</td><td>1 st</td><td class="num price-low">8 000</td><td class="num price-mid">25 000</td><td class="num price-high">60 000</td></tr>
+      <tr><td>Utemöbler (matgrupp 8 personer)</td><td>—</td><td class="num price-low">12 000</td><td class="num price-mid">28 000</td><td class="num price-high">65 000</td></tr>
+      <tr><td>Sittgrupp under pergolan (4 pers)</td><td>—</td><td class="num price-low">8 000</td><td class="num price-mid">18 000</td><td class="num price-high">40 000</td></tr>
+      <tr class="subtotal"><td colspan="2">Delsumma lek &amp; möbler</td><td class="num price-low">28 000</td><td class="num price-mid">71 000</td><td class="num price-high">165 000</td></tr>
+    </tbody>
+  </table>
+
+  <table><tr class="total"><td>VARIANT D TOTAL — bara fin trädgård</td><td></td><td class="num">276 000</td><td class="num">555 000</td><td class="num">1 025 000</td></tr></table>
+
+  <h2>Alternativet — anlita trädgårdsarkitekt</h2>
+
+  <p style="font-size: 0.88rem;">
+    Att anlita arkitekt är <strong>en separat kostnad</strong> ovanpå anläggningskostnaderna ovan. Arkitekten ritar och planerar — entreprenören anlägger.
+  </p>
+
+  <table>
+    <thead><tr><th>Tjänst</th><th>Vad ingår</th><th class="num">Pris</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Konsultation på plats</strong></td><td>1-2 timmar samtal i trädgården</td><td class="num">2 000 – 4 000 kr</td></tr>
+      <tr><td><strong>Idéskiss</strong></td><td>Översiktlig 2D-plan, en eller två varianter</td><td class="num">10 000 – 25 000 kr</td></tr>
+      <tr><td><strong>Komplett trädgårdsplan</strong></td><td>Skalenlig 2D + 3D + växt-/materiallista + belysningsplan</td><td class="num">30 000 – 75 000 kr</td></tr>
+      <tr><td><strong>Plan + projektledning</strong></td><td>Allt ovan + upphandling + uppföljning på plats</td><td class="num">75 000 – 150 000 kr</td></tr>
+      <tr><td><strong>Helhetsentreprenad</strong></td><td>Klumpsum, arkitekten gör allt</td><td class="num">+15-25 % på allt</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Sammanställning &amp; rekommendation</h2>
+
+  <div class="compare-grid">
+    <div class="card">
+      <h3 style="color:#2d6a8a;"><span class="variant-badge badge-A">A</span>Pool i söder</h3>
+      <div class="total-line"><span>Låg</span><span class="price-low">393 000 kr</span></div>
+      <div class="total-line"><span>Medel</span><span class="price-mid">827 000 kr</span></div>
+      <div class="total-line"><span>Hög</span><span class="price-high">1 565 000 kr</span></div>
+      <p style="font-size: 0.78rem; color: #555; margin: 10px 0 0;">
+        Pool i bakre trädgården. Stort fritt utrymme längs SV-sidan. Driftkostnad: 10-25 000 kr/år.
+      </p>
+    </div>
+    <div class="card">
+      <h3 style="color:#5a4a8a;"><span class="variant-badge badge-B">B</span>Pool längs SV</h3>
+      <div class="total-line"><span>Låg</span><span class="price-low">393 000 kr</span></div>
+      <div class="total-line"><span>Medel</span><span class="price-mid">827 000 kr</span></div>
+      <div class="total-line"><span>Hög</span><span class="price-high">1 565 000 kr</span></div>
+      <p style="font-size: 0.78rem; color: #555; margin: 10px 0 0;">
+        Pool parallellt med husets långsida. Stor öppen yta i bakre trädgården för lek.
+      </p>
+    </div>
+    <div class="card">
+      <h3 style="color:#a06030;"><span class="variant-badge badge-C">C</span>Bubbelpool + bastu</h3>
+      <div class="total-line"><span>Låg</span><span class="price-low">332 000 kr</span></div>
+      <div class="total-line"><span>Medel</span><span class="price-mid">680 000 kr</span></div>
+      <div class="total-line"><span>Hög</span><span class="price-high">1 290 000 kr</span></div>
+      <p style="font-size: 0.78rem; color: #555; margin: 10px 0 0;">
+        ~150 000 kr billigare än pool. Spa-drift: 5-15 000 kr/år. Bastu = minimal driftkostnad.
+      </p>
+    </div>
+    <div class="card">
+      <h3 style="color:#5a8a40;"><span class="variant-badge badge-D">D</span>Bara fin trädgård</h3>
+      <div class="total-line"><span>Låg</span><span class="price-low">276 000 kr</span></div>
+      <div class="total-line"><span>Medel</span><span class="price-mid">555 000 kr</span></div>
+      <div class="total-line"><span>Hög</span><span class="price-high">1 025 000 kr</span></div>
+      <p style="font-size: 0.78rem; color: #555; margin: 10px 0 0;">
+        Cheapest. Max lekyta för barnen. Pergola + eldstad ger trots det mysiga zoner. Kan kompletteras senare med pool/spa.
+      </p>
+    </div>
+  </div>
+
+  <div class="decision">
+    <h3>Vägvalet — vilken stig ska ni gå?</h3>
+
+    <p><strong>Ekonomi-analys:</strong></p>
+    <ul style="margin: 4px 0; padding-left: 20px; font-size: 0.86rem;">
+      <li><strong>Pool kostar mest</strong> — A &amp; B är ~60-275k dyrare än C, ~115-540k dyrare än D</li>
+      <li><strong>D är billigast</strong> men ni "missar" pool/spa-upplevelsen</li>
+      <li><strong>C är medel-väg</strong> — bra balans, billigare än pool och fortfarande "wow-factor"</li>
+      <li><strong>Driftkostnad pool</strong>: 10-25k/år (~150-375k på 15 år) — räkna in i totalkostnaden</li>
+    </ul>
+
+    <p style="margin-top: 10px;"><strong>Rekommenderat tillvägagångssätt för en familj med 3 barn:</strong></p>
+    <ol style="margin: 4px 0; padding-left: 20px; font-size: 0.86rem;">
+      <li><strong>Börja med Variant D</strong> (bara fin trädgård) som <em>första etapp</em>. Anlägg trall, gräs, häck, träd, lek. ~280-555k.</li>
+      <li><strong>Bo in er ett år.</strong> Ni lär er hur ni faktiskt använder trädgården, var solen står, vad som saknas.</li>
+      <li><strong>Etapp 2 (år 2-5):</strong> Bygg på med pool, spa eller bastu — då vet ni VAR ni vill ha det. Kostar mer (svårare att integrera senare) men risken för fel-investering minskar.</li>
+    </ol>
+
+    <p style="margin-top: 10px;"><strong>Anlita arkitekt?</strong> Boka en <strong>idéskiss</strong> hos lokal Uppsala-arkitekt (10-25k kr) — speciellt om ni vill väga A vs B vs C. De kan föreslå solriktningar, vyer, integration med huset som inte syns i en webbskiss.</p>
+  </div>
+
+  <h2>Snabba faktoidstycken &amp; fallgropar</h2>
+  <ul style="font-size: 0.88rem;">
+    <li><strong>Pool-grävning</strong> kräver ofta marklov från kommunen om djupare än 2 m. Kontrollera Uppsala kommuns regler.</li>
+    <li><strong>Bygglovsbefriade</strong>: friggebod (15 m²) och attefallshus (25-30 m²). En bastu på 2×3 m = 6 m², inom friggebodsgräns. Pergola på 4×3 m är också inom friggebodsgräns.</li>
+    <li><strong>El till spa/bastu</strong>: kräver behörig elektriker. Räkna 8-15 000 kr extra.</li>
+    <li><strong>VA-anslutning till pool</strong>: tillstånd från Uppsala Vatten kan behövas.</li>
+    <li><strong>Markförhållanden</strong>: Vaksala-Lunda kan ha lera/silt — pool kräver dräneringskontroll, +20-50 000 kr om svår mark.</li>
+    <li><strong>Säsong</strong>: anlägg pool/spa april-maj. Plantering bäst sept-okt eller april. Färdig gräsmatta: maj-september.</li>
+    <li><strong>ROT-avdrag gäller INTE för er</strong> de första 5 åren. Bostaden måste ha varit i bruk minst 5 år för ROT — er villa är nyproducerad, så inga ROT-avdrag på pool/altan/häck-anläggningen. Räkna full bruttokostnad.</li>
+    <li><strong>RUT-avdrag</strong> (50%): gäller endast <em>hushållstjänster</em> (gräsklippning, häckklippning, snöskottning, ogräsrensning). Gäller INTE anläggningsarbete (bygga altan, plantera, gräva pool). Användbart efter att trädgården är klar — för löpande underhåll.</li>
+    <li><strong>Etappvis anläggning</strong> kan strategiskt få ROT-stöd: gör grundanläggningen nu (ingen ROT), och spara större tillbyggnader (t.ex. pool eller poolhus) till efter 5 år för att då utnyttja ROT-avdrag.</li>
+    <li><strong>Etappvis anläggning</strong> är ofta klokt: börja med altan + häck år 1, fortsätt år 2 med plantering, år 3 ev. pool. Sprider ut kostnad och risk.</li>
+  </ul>
+
+  <p class="footnote">
+    Källor: Hemnet trädgårdsguider, Trädgårdshemma.se prisindex 2025-26, Sveriges Trädgårdsanläggares Förbund (STAF), egen erfarenhetsbas.
+    Priser inkl. moms och rimliga arbetskostnader för Uppsala-området.
+    Skapad 2026-04-26 som hjälpunderlag, inte ekonomisk rådgivning.
+  </p>
+</div>
+</body>
+</html>
