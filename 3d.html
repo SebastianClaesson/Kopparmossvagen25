@@ -1034,60 +1034,48 @@ poolGroupC.visible = false;
 scene.add(poolGroupC);
 
 // =========================================================================
-// VARIANT E — pool i söder, LÅNGSIDAN mot huset (8m bred, 4m djupt)
-// Sammanhängande premium-altan runt hela poolen + parasoller + planteringar
+// VARIANT E — pool i söder, LÅNGSIDAN mot huset (8m bred × 4m djup)
+// Sammanhängande altan runt poolen, ingen synlig steg-effekt mot SE-altan
 // =========================================================================
-const POOL_E_X = HOUSE_X;
-const POOL_E_Z = HOUSE_Z + HOUSE_D/2 + DECK_W + 1.0 + 4/2;  // 1m gap from south deck
+const POOL_E_X = HOUSE_X;                                     // = 3.26
+const POOL_E_Z = HOUSE_Z + HOUSE_D/2 + DECK_W + 1.0 + 2;      // = 7.33
 
-const POOL_E_X_MIN = POOL_E_X - 4;
-const POOL_E_X_MAX = POOL_E_X + 4;
-const POOL_E_Z_MIN = POOL_E_Z - 2;
-const POOL_E_Z_MAX = POOL_E_Z + 2;
+const POOL_E_X_MIN = POOL_E_X - 4;     // -0.74
+const POOL_E_X_MAX = POOL_E_X + 4;     //  7.26
+const POOL_E_Z_MIN = POOL_E_Z - 2;     //  5.33
+const POOL_E_Z_MAX = POOL_E_Z + 2;     //  9.33
 
-// Premium altan-ram: flush runt poolen, generös sol-/uteplats i söder
-const DECK_E_X_MIN = -3.84;                   // ansluter till SV-altan
-const DECK_E_X_MAX = 8.6;                     // smal kant öster om pool
-const DECK_E_Z_MIN = HOUSE_Z + HOUSE_D/2 + DECK_W;  // = 4.33 (mot SE-altan, ingen lucka)
-const DECK_E_Z_MAX = 13.5;                    // generös solterass söderut
+// Altan-ramen ansluter exakt till deckSouth (x [-4.105, 7.125], z [0.83, 4.33])
+// + en liten östlig förlängning så det inte blir ett synligt "trappsteg" mot pool E
+const DECK_E_X_MIN = -4.105;           // matchar deckSouth väster
+const DECK_E_X_MAX = 8.6;              // 1.5 m östlig förlängning för pool
+const DECK_E_Z_MIN = HOUSE_Z + HOUSE_D/2 + DECK_W;  // = 4.33
+const DECK_E_Z_MAX = 13.5;
 
 const deckEGroup = new THREE.Group();
 
 function addDeckPiece(xMin, xMax, zMin, zMax) {
     const w = xMax - xMin;
     const d = zMax - zMin;
-    if (w <= 0 || d <= 0) return;
-    const m = new THREE.Mesh(
-        new THREE.BoxGeometry(w, DECK_H, d),
-        M.deck
-    );
+    if (w <= 0.01 || d <= 0.01) return;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, DECK_H, d), M.deck);
     m.position.set((xMin + xMax)/2, DECK_H/2, (zMin + zMax)/2);
     m.castShadow = true;
     m.receiveShadow = true;
     deckEGroup.add(m);
 }
-// 4 strips runt poolen — flush, inga gap
-addDeckPiece(DECK_E_X_MIN, DECK_E_X_MAX, DECK_E_Z_MIN, POOL_E_Z_MIN);   // N (mellan SE-altan och pool)
-addDeckPiece(DECK_E_X_MIN, DECK_E_X_MAX, POOL_E_Z_MAX, DECK_E_Z_MAX);   // S (sol-/lounge-zon)
-addDeckPiece(DECK_E_X_MIN, POOL_E_X_MIN, POOL_E_Z_MIN, POOL_E_Z_MAX);   // V (väster om pool)
-addDeckPiece(POOL_E_X_MAX, DECK_E_X_MAX, POOL_E_Z_MIN, POOL_E_Z_MAX);   // Ö (smal kant)
 
-// Plank-linjer på altanen för textur (varje 0.5 m)
-const plankLineMat = new THREE.MeshStandardMaterial({ color: 0x8a6038, roughness: 0.9 });
-for (let z = DECK_E_Z_MIN + 0.5; z < DECK_E_Z_MAX; z += 0.5) {
-    // Skip om plank skär över poolen
-    if (z > POOL_E_Z_MIN && z < POOL_E_Z_MAX) continue;
-    const line = new THREE.Mesh(
-        new THREE.BoxGeometry(DECK_E_X_MAX - DECK_E_X_MIN - 0.1, 0.005, 0.04),
-        plankLineMat
-    );
-    line.position.set((DECK_E_X_MIN + DECK_E_X_MAX)/2, DECK_H + 0.003, z);
-    deckEGroup.add(line);
-}
+// Östlig förlängning av deckSouth (täcker steget vid husets SE-hörn)
+addDeckPiece(7.125, DECK_E_X_MAX, 0.83, DECK_E_Z_MIN);
 
-// 2 parasoller på sol-zonen söder om poolen
+// 4 strips runt poolen — flush mot varandra
+addDeckPiece(DECK_E_X_MIN, DECK_E_X_MAX, DECK_E_Z_MIN, POOL_E_Z_MIN);   // N
+addDeckPiece(DECK_E_X_MIN, DECK_E_X_MAX, POOL_E_Z_MAX, DECK_E_Z_MAX);   // S (solterass)
+addDeckPiece(DECK_E_X_MIN, POOL_E_X_MIN, POOL_E_Z_MIN, POOL_E_Z_MAX);   // V
+addDeckPiece(POOL_E_X_MAX, DECK_E_X_MAX, POOL_E_Z_MIN, POOL_E_Z_MAX);   // Ö
+
+// 2 parasoller på solterassen söder om poolen
 function addParasol(x, z) {
-    // Stång
     const pole = new THREE.Mesh(
         new THREE.CylinderGeometry(0.04, 0.04, 2.4),
         new THREE.MeshStandardMaterial({ color: 0x222222 })
@@ -1095,7 +1083,6 @@ function addParasol(x, z) {
     pole.position.set(x, 1.2 + DECK_H, z);
     pole.castShadow = true;
     deckEGroup.add(pole);
-    // Skärm (cone, upp och ner)
     const canopy = new THREE.Mesh(
         new THREE.ConeGeometry(1.2, 0.4, 16),
         new THREE.MeshStandardMaterial({ color: 0xc4a878, roughness: 0.85, side: THREE.DoubleSide })
@@ -1103,37 +1090,9 @@ function addParasol(x, z) {
     canopy.position.set(x, 2.4 + DECK_H, z);
     canopy.castShadow = true;
     deckEGroup.add(canopy);
-    // Skärmens centrum-rib
-    const rib = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.03, 0.03, 0.3),
-        new THREE.MeshStandardMaterial({ color: 0x222222 })
-    );
-    rib.position.set(x, 2.55 + DECK_H, z);
-    deckEGroup.add(rib);
 }
-addParasol(0.2, 11.5);
-addParasol(6.3, 11.5);
-
-// Planteringskärl (med små buskar) i hörnen för att rama in
-function addPlanter(x, z) {
-    const box = new THREE.Mesh(
-        new THREE.BoxGeometry(0.7, 0.6, 0.7),
-        new THREE.MeshStandardMaterial({ color: 0x3a2818, roughness: 0.9 })
-    );
-    box.position.set(x, 0.3 + DECK_H, z);
-    box.castShadow = true;
-    deckEGroup.add(box);
-    const bush = new THREE.Mesh(
-        new THREE.SphereGeometry(0.45, 10, 8),
-        new THREE.MeshStandardMaterial({ color: 0x4a7045, roughness: 1.0 })
-    );
-    bush.position.set(x, 0.95 + DECK_H, z);
-    bush.castShadow = true;
-    deckEGroup.add(bush);
-}
-addPlanter(DECK_E_X_MIN + 0.5, DECK_E_Z_MAX - 0.5);    // SV-hörn
-addPlanter(DECK_E_X_MAX - 0.5, DECK_E_Z_MAX - 0.5);    // SÖ-hörn
-addPlanter(DECK_E_X_MIN + 0.5, DECK_E_Z_MIN + 0.5);    // NV-hörn (mot huset)
+addParasol(0.2, 11.7);
+addParasol(6.3, 11.7);
 
 deckEGroup.visible = false;
 scene.add(deckEGroup);
