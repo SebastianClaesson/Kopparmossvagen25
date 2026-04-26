@@ -123,12 +123,85 @@
     z-index: 100;
     font-size: 0.9rem;
   }
+
+  /* Mobil-toggle-knapp */
+  #panel-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 20;
+    background: rgba(20, 20, 20, 0.92);
+    color: white;
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* === MOBILE STYLING === */
+  @media (max-width: 700px) {
+    header.ui {
+      top: 8px;
+      left: 8px;
+      right: 60px;        /* utrymme för toggle-knappen */
+      max-width: none;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+    }
+    header.ui h1 { font-size: 0.85rem; }
+    header.ui .sub { font-size: 0.68rem; margin-bottom: 4px; }
+
+    #panel-toggle { display: block; }
+
+    .panel.ui {
+      top: 64px;
+      right: 8px;
+      width: calc(100vw - 16px);
+      max-width: 260px;
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
+      transform: translateX(110%);
+      transition: transform 0.2s;
+    }
+    .panel.ui.open { transform: translateX(0); }
+    .panel button {
+      padding: 10px 12px;     /* större touch-targets */
+      font-size: 0.85rem;
+      min-height: 40px;
+    }
+
+    .info.ui {
+      bottom: 80px;
+      left: 8px;
+      right: 8px;
+      max-width: none;
+      font-size: 0.7rem;
+      padding: 8px 12px;
+    }
+    .info.ui kbd { display: none; }   /* dölj tangent-hjälp på mobil */
+
+    .compass.ui {
+      bottom: 8px;
+      right: 8px;
+      width: 60px;
+      height: 60px;
+      padding: 4px;
+    }
+  }
+  @media (max-width: 700px) and (orientation: landscape) {
+    .info.ui { display: none; }
+  }
 </style>
 </head>
 <body>
 
 <div id="loading">Laddar 3D-scen…</div>
 <div id="canvas-container"></div>
+
+<button id="panel-toggle" onclick="document.querySelector('.panel.ui').classList.toggle('open');this.textContent=this.textContent==='☰ Meny'?'✕':'☰ Meny';">☰ Meny</button>
 
 <header class="ui">
   <h1>3D-VY · Vaksala-Lunda 39:4</h1>

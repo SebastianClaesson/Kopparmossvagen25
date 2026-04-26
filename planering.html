@@ -115,6 +115,28 @@
   .month-summary td.month { font-weight: 700; color: #2d4a2b; width: 200px; }
 
   .footnote { font-size: 0.78rem; color: #888; margin-top: 24px; line-height: 1.5; }
+
+  /* === MOBIL === */
+  @media (max-width: 600px) {
+    body { padding: 8px; }
+    h1 { font-size: 1rem; }
+    .sub { font-size: 0.78rem; }
+    .nav-links { gap: 6px; }
+    .nav-links a { padding: 6px 10px; font-size: 0.78rem; min-height: 36px; display: inline-flex; align-items: center; }
+    h2 { font-size: 0.92rem; padding: 6px 10px; margin: 16px 0 6px; }
+    .gantt { padding: 8px; }
+    .gantt table { font-size: 0.7rem; min-width: 700px; }
+    .gantt td.task-name { min-width: 130px; font-size: 0.7rem; }
+    .legend { font-size: 0.72rem; gap: 8px; }
+    .phase-grid { grid-template-columns: 1fr; }
+    .phase-card { padding: 10px; }
+    .phase-card h3 { font-size: 0.85rem; }
+    .phase-card ul { font-size: 0.78rem; }
+    .month-summary table { font-size: 0.74rem; }
+    .month-summary td { padding: 5px 6px; }
+    .month-summary td.month { width: 100px; font-size: 0.7rem; }
+    .tip, .marker-rot { font-size: 0.78rem; padding: 8px 10px; }
+  }
 </style>
 </head>
 <body>

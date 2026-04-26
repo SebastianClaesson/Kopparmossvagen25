@@ -115,6 +115,28 @@
   .pill-mid { background: #f5e6c8; color: #6a4810; }
   .pill-high { background: #f0d4c8; color: #6a2010; }
   .footnote { font-size: 0.78rem; color: #888; margin-top: 24px; line-height: 1.4; }
+
+  /* === MOBIL === */
+  @media (max-width: 600px) {
+    body { padding: 8px; }
+    h1 { font-size: 1rem; }
+    .sub { font-size: 0.78rem; }
+    .nav-links { gap: 6px; }
+    .nav-links a { padding: 6px 10px; font-size: 0.78rem; min-height: 36px; display: inline-flex; align-items: center; }
+    h2 { font-size: 0.92rem; padding: 6px 10px; }
+    h3 { font-size: 0.86rem; }
+    table { font-size: 0.74rem; }
+    th, td { padding: 5px 6px; }
+    th { font-size: 0.66rem; }
+    .compare-grid { grid-template-columns: 1fr; gap: 10px; }
+    .card { padding: 10px; }
+    .card .total-line { font-size: 0.84rem; }
+    .decision { padding: 10px 12px; font-size: 0.82rem; }
+    .disclaimer { font-size: 0.78rem; padding: 8px 10px; }
+    /* Tabeller med overflow-x för långa rader */
+    table { display: block; overflow-x: auto; white-space: nowrap; }
+    table thead, table tbody, table tr { display: table; width: 100%; table-layout: fixed; }
+  }
   .variant-badge {
     display: inline-block;
     width: 24px;

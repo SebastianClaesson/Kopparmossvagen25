@@ -51,6 +51,27 @@
     gap: 14px;
   }
   @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+
+  /* === MOBIL === */
+  @media (max-width: 600px) {
+    body { padding: 8px; }
+    h1 { font-size: 0.92rem; }
+    .sub { font-size: 0.72rem; }
+    .nav-links { gap: 6px; }
+    .nav-links a { padding: 6px 10px; font-size: 0.78rem; min-height: 36px; display: inline-flex; align-items: center; }
+    .ok-banner { font-size: 0.74rem; padding: 6px 8px; }
+    .controls { gap: 6px; margin: 8px 0 10px; }
+    button {
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      min-height: 40px;          /* touch-friendly */
+      flex: 1 1 calc(50% - 6px);  /* 2 per rad */
+    }
+    .map { padding: 4px; }
+    svg { min-height: 60vh; }     /* säkerställ att SVG syns */
+    .info { padding: 10px; font-size: 0.74rem; }
+    .info table { font-size: 0.7rem; }
+  }
   .map, .info {
     background: #fdfbf4;
     border: 1px solid #444;
