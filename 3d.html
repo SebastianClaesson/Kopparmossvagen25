@@ -236,7 +236,7 @@
   <kbd>Vänster mus</kbd> rotera ·
   <kbd>Höger mus</kbd> panorera ·
   <kbd>Scroll</kbd> zoom<br>
-  <span style="color:#888;">Tomt 20,25×34 m (688,5 m²) · Hus 7,73×12,83 m · Carport 3,94×8,69 m · Pool 4×8 m · Bastu 2×3 m · Spa ø 2 m · Studsmatta ø 4,3 m. Setbacks: NÖ 3m, SV 1,5m (carport), NV 5m fram.</span>
+  <span style="color:#888;">Tomt 20,25×34 m (688,5 m²) · Hus 7,73×12,83 m · Carport 3,94×8,69 m · Trall U-form 68,5 m² (carportens slut → runt gaveln → köksdörren) · Pool 4×8 m · Bastu 2×3 m · Spa ø 2 m · Studsmatta ø 4,3 m. Setbacks: NÖ 3m, SV 1,5m (carport), NV 5m fram.</span>
 </div>
 
 <div class="compass ui">
@@ -721,24 +721,40 @@ walkway.position.set(HOUSE_X - 1.8, 0.013, HOUSE_Z - HOUSE_D/2 - 2.6);
 walkway.receiveShadow = true;
 scene.add(walkway);
 
-// === DECK (L-shape: SV-strip alongside house + SE-strip across SE gable) ===
-const DECK_W = 3.5;     // narrower so it doesn't crowd carport (gap 0.33m to carport NE wall)
+// === DECK (U-form: från carportens slut, runt SE-gaveln, till köksdörren på NÖ) ===
+const DECK_W = 3.5;     // SV/SE-bredd (gap 0.58m till carportens NÖ-vägg)
+const DECK_NE_W = 2.0;  // NÖ-strip: 3 m setback − 1 m häck
 const DECK_H = 0.16;
 
-// SV-deck along full SW long side of house (carport sits on the other side of the gap)
-const deckMain = new THREE.Mesh(new THREE.BoxGeometry(DECK_W, DECK_H, HOUSE_D), M.deck);
-deckMain.position.set(HOUSE_X - HOUSE_W/2 - DECK_W/2, DECK_H/2, HOUSE_Z);
+const DECK_SW_ZMIN = CARPORT_Z + CARPORT_D/2;        // carportens slut = -3.31
+const HOUSE_SE_Z   = HOUSE_Z + HOUSE_D/2;            // = 0.83
+const DECK_NE_ZMIN = -3.0;                           // strax NV om köksdörren (z -2.585..-1.585)
+const DECK_X_MIN   = HOUSE_X - HOUSE_W/2 - DECK_W;   // = -4.105
+const DECK_X_MAX   = HOUSE_X + HOUSE_W/2 + DECK_NE_W; // = 9.125 (flush mot NÖ-häcken)
+
+// SV-strip: från carportens slut till SE-gaveln (matplatsdörren på trall)
+const deckMain = new THREE.Mesh(
+    new THREE.BoxGeometry(DECK_W, DECK_H, HOUSE_SE_Z - DECK_SW_ZMIN), M.deck);
+deckMain.position.set(HOUSE_X - HOUSE_W/2 - DECK_W/2, DECK_H/2, (DECK_SW_ZMIN + HOUSE_SE_Z)/2);
 deckMain.castShadow = true;
 deckMain.receiveShadow = true;
 scene.add(deckMain);
 
-// SE-deck across SE gable + connecting back to SV-deck
-const deckSouthW = HOUSE_W + DECK_W;
-const deckSouth = new THREE.Mesh(new THREE.BoxGeometry(deckSouthW, DECK_H, DECK_W), M.deck);
-deckSouth.position.set(HOUSE_X - DECK_W/2, DECK_H/2, HOUSE_Z + HOUSE_D/2 + DECK_W/2);
+// SE-strip över gaveln — hela vägen ut till NÖ-strippens ytterkant
+const deckSouth = new THREE.Mesh(
+    new THREE.BoxGeometry(DECK_X_MAX - DECK_X_MIN, DECK_H, DECK_W), M.deck);
+deckSouth.position.set((DECK_X_MIN + DECK_X_MAX)/2, DECK_H/2, HOUSE_SE_Z + DECK_W/2);
 deckSouth.castShadow = true;
 deckSouth.receiveShadow = true;
 scene.add(deckSouth);
+
+// NÖ-strip: från gaveln upp till köksdörren på andra långsidan
+const deckNE = new THREE.Mesh(
+    new THREE.BoxGeometry(DECK_NE_W, DECK_H, HOUSE_SE_Z - DECK_NE_ZMIN), M.deck);
+deckNE.position.set(HOUSE_X + HOUSE_W/2 + DECK_NE_W/2, DECK_H/2, (DECK_NE_ZMIN + HOUSE_SE_Z)/2);
+deckNE.castShadow = true;
+deckNE.receiveShadow = true;
+scene.add(deckNE);
 
 // Path strip between carport and house (in the gap)
 const pathMat = new THREE.MeshStandardMaterial({ color: 0xc4bfae, roughness: 0.95 });
@@ -1046,10 +1062,10 @@ const POOL_E_X_MAX = POOL_E_X + 4;     //  7.26
 const POOL_E_Z_MIN = POOL_E_Z - 2;     //  5.33
 const POOL_E_Z_MAX = POOL_E_Z + 2;     //  9.33
 
-// Altan-ramen ansluter exakt till deckSouth (x [-4.105, 7.125], z [0.83, 4.33])
-// + en liten östlig förlängning så det inte blir ett synligt "trappsteg" mot pool E
+// Altan-ramen ansluter exakt till deckSouth (x [-4.105, 9.125], z [0.83, 4.33])
+// Bas-trallen (U-form) täcker redan hela gavelremsan ut till x 9.125 — ingen extra förlängning behövs
 const DECK_E_X_MIN = -4.105;           // matchar deckSouth väster
-const DECK_E_X_MAX = 8.6;              // 1.5 m östlig förlängning för pool
+const DECK_E_X_MAX = 8.6;              // poolram-bredd öster om pool E
 const DECK_E_Z_MIN = HOUSE_Z + HOUSE_D/2 + DECK_W;  // = 4.33
 const DECK_E_Z_MAX = 13.5;
 
@@ -1066,10 +1082,7 @@ function addDeckPiece(xMin, xMax, zMin, zMax) {
     deckEGroup.add(m);
 }
 
-// Östlig förlängning av deckSouth (täcker steget vid husets SE-hörn)
-addDeckPiece(7.125, DECK_E_X_MAX, 0.83, DECK_E_Z_MIN);
-
-// 4 strips runt poolen — flush mot varandra
+// 4 strips runt poolen — flush mot varandra (ansluter till bas-trallens SE-kant vid z=4.33)
 addDeckPiece(DECK_E_X_MIN, DECK_E_X_MAX, DECK_E_Z_MIN, POOL_E_Z_MIN);   // N
 addDeckPiece(DECK_E_X_MIN, DECK_E_X_MAX, POOL_E_Z_MAX, DECK_E_Z_MAX);   // S (solterass)
 addDeckPiece(DECK_E_X_MIN, POOL_E_X_MIN, POOL_E_Z_MIN, POOL_E_Z_MAX);   // V
@@ -1447,7 +1460,7 @@ const gardenFGroup = new THREE.Group();
         { soil: 0x4a3018, plant: 0xa05050 },   // tomater
         { soil: 0x4a3018, plant: 0x8aa066 }    // örter
     ];
-    [4, 7, 10].forEach((bz, idx) => {
+    [5.5, 8, 10.5].forEach((bz, idx) => {   // söder om trallens SE-kant (z > 4.33)
         const bedFrame = new THREE.Mesh(
             new THREE.BoxGeometry(0.8, 0.4, 1.6),
             new THREE.MeshStandardMaterial({ color: 0x6a4828, roughness: 0.9 })

@@ -28,12 +28,12 @@ GitHub Pages: <https://sebastianclaesson.github.io/Kopparmossvagen25/>
 
 | | Variant | Total (medel) |
 |---|---|---|
-| **A** | Pool i söder (kortsidan mot hus) | ~827 000 kr |
-| **B** | Pool längs SV (vid carporten) | ~827 000 kr |
-| **C** | Bubbelpool + bastu (utan pool) | ~680 000 kr |
-| **D** | Bara fin trädgård (pergola + eldstad) | ~555 000 kr |
-| **E** | Pool i söder (långsida mot hus) | ~830 000 kr |
-| **⭐ F** | Familjeparadis — bastu + spa + utekök + pergola + plaskdam + odlingslådor + eldstad | ~921 000 kr |
+| **A** | Pool i söder (kortsidan mot hus) | ~787 000 kr |
+| **B** | Pool längs SV (vid carporten) | ~787 000 kr |
+| **C** | Bubbelpool + bastu (utan pool) | ~640 000 kr |
+| **D** | Bara fin trädgård (pergola + eldstad) | ~515 000 kr |
+| **E** | Pool i söder (långsida mot hus) | ~790 000 kr |
+| **⭐ F** | Familjeparadis — bastu + spa + utekök + pergola + plaskdam + odlingslådor + eldstad | ~881 000 kr |
 
 Klicka mellan varianterna i toppen av 2D- och 3D-vyerna. Variant F är min ärliga rekommendation: året-runt-användning, lägre drift än pool, högre återförsäljningsvärde.
 
